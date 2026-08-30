@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Omarchy — Beautiful, Fun &amp; Opinionated Linux by DHH</title>
+<meta name="description" content="Omarchy: beautiful, fun and opinionated Linux by DHH. The malleable OS for the age of agents — served from a Commodore 64.">
+<meta name="theme-color" content="#000000">
+<meta property="og:title" content="Omarchy — Beautiful, Fun &amp; Opinionated Linux by DHH">
+<meta property="og:description" content="The malleable OS for the age of agents. Now booting on a Commodore 64.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%232e2c9b'/><rect x='3' y='4' width='10' height='8' fill='%23706deb'/></svg>">
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#000;
+    -webkit-font-smoothing:antialiased;overscroll-behavior:none;touch-action:none}
+  body{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;color:#8d8dff}
+  #gl{position:fixed;inset:0;width:100%;height:100%;display:block;background:#000;
+    opacity:0;transition:opacity .8s ease}
+  body.ready #gl{opacity:1}
+
+  /* hardware label that follows what you point at */
+  #hint{position:fixed;left:50%;bottom:max(22px,env(safe-area-inset-bottom));
+    transform:translate(-50%,10px);padding:7px 15px 6px;
+    font-size:11px;letter-spacing:.19em;text-transform:uppercase;
+    color:#b9c0ff;background:rgba(10,10,26,.62);border:1px solid rgba(141,141,255,.28);
+    border-radius:999px;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);
+    pointer-events:none;opacity:0;transition:opacity .22s ease,transform .22s ease;
+    white-space:nowrap;z-index:5;text-shadow:0 0 14px rgba(112,109,235,.7)}
+  #hint.on{opacity:1;transform:translate(-50%,0)}
+
+  /* boot loader */
+  #loader{position:fixed;inset:0;display:grid;place-items:center;background:#000;z-index:20;
+    color:#706deb;font-size:12px;letter-spacing:.3em;text-transform:uppercase;
+    transition:opacity .5s ease}
+  #loader b{font-weight:400;animation:bl 1.05s steps(1) infinite}
+  @keyframes bl{50%{opacity:0}}
+
+  /* corner marks */
+  .corner{position:fixed;z-index:4;font-size:10px;letter-spacing:.22em;text-transform:uppercase;
+    color:rgba(141,141,255,.42);pointer-events:none;text-shadow:0 0 12px rgba(112,109,235,.5)}
+  .corner a{color:rgba(141,141,255,.62);pointer-events:auto;text-decoration:none;
+    border-bottom:1px solid rgba(141,141,255,.25)}
+  .corner a:hover{color:#cfd4ff;border-bottom-color:#cfd4ff}
+  #tl{top:20px;left:22px}
+  #tr{top:20px;right:22px;text-align:right}
+  @media (max-width:720px){.corner{font-size:9px}#tl,#tr{top:12px}#tl{left:12px}#tr{right:12px}}
+  @media (max-height:520px){.corner{display:none}}
+  /* narrow phones: drop the second line of each corner so they cannot collide */
+  @media (max-width:520px){.corner{font-size:8px;letter-spacing:.16em}#tl b,#tr b{display:none}}
+
+  /* real links for machines and keyboards without a mouse */
+  .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+    clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  #fallback{position:fixed;inset:0;display:none;place-items:center;background:#0b0b18;z-index:30;
+    padding:32px;text-align:center;overflow:auto}
+  body.failed #fallback{display:grid}
+  body.failed #loader{display:none}
+  #fallback h1{font-size:22px;letter-spacing:.2em;color:#8d8dff;margin:0 0 8px}
+  #fallback p{color:#7f86c9;font-size:13px;line-height:1.7;max-width:46ch;margin:0 auto 22px}
+  #fallback nav{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;max-width:640px}
+  #fallback nav a{color:#cfd4ff;text-decoration:none;font-size:12px;letter-spacing:.14em;
+    border:1px solid rgba(141,141,255,.3);border-radius:6px;padding:8px 13px}
+  #fallback nav a:hover{background:rgba(141,141,255,.12)}
+</style>
+</head>
+<body>
+
+<canvas id="gl"></canvas>
+<div id="hint"></div>
+
+
+<div id="loader">Loading<b>&nbsp;&#9608;</b></div>
+
+<div id="fallback">
+  <div>
+    <h1>OMARCHY</h1>
+    <p>Beautiful, Fun &amp; Opinionated Linux by DHH. The malleable OS for the age of agents.
+       This page wants WebGL for its Commodore 64 — here are the plain links instead.</p>
+    <nav>
+      <a href="https://omarchy.org/manual/">Manual</a>
+      <a href="https://iso.omarchy.org/omarchy-4.0.1.iso">ISO</a>
+      <a href="https://omarchyplugins.com/">Plugins</a>
+      <a href="https://github.com/omacom/omarchy">GitHub</a>
+      <a href="https://omarchy.org/security/">Security</a>
+      <a href="https://omarchy.org/news/">News</a>
+      <a href="https://omarchy.org/teams/">Teams</a>
+      <a href="https://omarchy.org/patrons/">Patrons</a>
+      <a href="https://omarchy.org/sponsorships/">Sponsorships</a>
+      <a href="https://omarchy.org/air/">AIR</a>
+      <a href="https://discord.gg/tXFUdasqhY">Discord</a>
+      <a href="https://omarchy.org/meetups/">Meetups</a>
+      <a href="https://omarchy.org/workstations/">Workstations</a>
+      <a href="https://supply.37signals.com/collections/omarchy">Merch</a>
+    </nav>
+  </div>
+</div>
+
+<div class="sr">
+  <h1>Omarchy — Beautiful, Fun &amp; Opinionated Linux by DHH</h1>
+  <p>The malleable OS for the age of agents. Where you can vibe your way through every alteration,
+     tweak, and desire. Be the Omarch and command your agent.</p>
+  <nav aria-label="Omarchy">
+    <a href="https://omarchy.org/manual/">The Manual</a>
+    <a href="https://iso.omarchy.org/omarchy-4.0.1.iso">The ISO</a>
+    <a href="https://omarchyplugins.com/">The Plugins</a>
+    <a href="https://github.com/omacom/omarchy">The Code</a>
+    <a href="https://omarchy.org/security/">Security reporting</a>
+    <a href="https://omarchy.org/news/">The News</a>
+    <a href="https://omarchy.org/teams/">The Teams</a>
+    <a href="https://omarchy.org/patrons/">The Patrons</a>
+    <a href="https://omarchy.org/sponsorships/">The Sponsorships</a>
+    <a href="https://omarchy.org/air/">Artists in Residence</a>
+    <a href="https://discord.gg/tXFUdasqhY">The Discord</a>
+    <a href="https://omarchy.org/meetups/">The Meetups</a>
+    <a href="https://omarchy.org/workstations/">The Workstations</a>
+    <a href="https://supply.37signals.com/collections/omarchy">The Merch</a>
+    <a href="https://dhh.dk/">DHH</a>
+    <a href="mailto:david@omarchy.org">david@omarchy.org</a>
+  </nav>
+</div>
+
+<script type="text/plain" id="three-src">/*{{THREE}}*/</script>
+<script id="om-res">window.__OM_RES__ = /*{{RES}}*/;</script>
+<script type="module">
+try {
+  /*{{APP}}*/
+} catch (err) {
+  console.error(err);
+  document.body.classList.add('failed');
+}
+</script>
+</body>
+</html>
