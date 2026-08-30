@@ -1,0 +1,8 @@
+default_provider = "op"
+
+[providers.op]
+type = "1password"
+
+[secrets]
+CLOUDFLARE_API_TOKEN= { provider = "op", value = "op://vault/cloudflare/token" }
+CLOUDFLARE_ACCOUNT_ID= { provider = "op", value = "op://vault/cloudflare/account_id" }
