@@ -1,0 +1,162 @@
+# Pull-request and branch CI.
+#
+# `verify` runs exactly the checks `npm run check` runs locally, in the same
+# order, so a green run here means the same thing as a green run on a laptop.
+# `preview` then publishes the built page to a Cloudflare Pages preview branch
+# and leaves the URL as a PR comment.
+#
+# Production deploys live in deploy.yml and only happen on push to main.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches-ignore:
+      - main
+
+# One run per ref. A new push supersedes the previous run.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out
+        uses: actions/checkout@v5
+
+      # mise.toml is the single source of truth for the toolchain. Only node is
+      # installed here: the other tools it pins (1password, fnox, wrangler, the
+      # hook linters) are for local work, and CI gets its credentials from
+      # repository secrets instead.
+      - name: Install tools from mise.toml
+        uses: jdx/mise-action@v2
+        with:
+          install_args: node
+          cache: true
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Unit and build tests
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+      - name: End-to-end tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload built page
+        uses: actions/upload-artifact@v5
+        with:
+          name: dist
+          path: dist/index.html
+          retention-days: 7
+
+  preview:
+    name: Preview deploy
+    needs: verify
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Check out
+        uses: actions/checkout@v5
+
+      - name: Install tools from mise.toml
+        uses: jdx/mise-action@v2
+        with:
+          install_args: node
+          cache: true
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      # Cloudflare credentials come from repository secrets here. Locally the
+      # same two variables are supplied by 1Password through `fnox run --`.
+      - name: Deploy preview to Cloudflare Pages
+        id: deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          npx wrangler pages deploy dist \
+            --project-name omarchy-website \
+            --branch "$HEAD_REF" | tee deploy.log
+          url="$(grep -Eo 'https://[a-z0-9.-]+\.pages\.dev' deploy.log | tail -n 1)"
+          if [ -z "$url" ]; then
+            echo "Could not find a preview URL in the wrangler output" >&2
+            exit 1
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Preview deployed"
+            echo ""
+            echo "$url"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Comment the preview URL on the pull request
+        uses: actions/github-script@v8
+        env:
+          PREVIEW_URL: ${{ steps.deploy.outputs.url }}
+        with:
+          script: |
+            const marker = '<!-- omarchy-preview -->';
+            const body = [
+              marker,
+              '### Preview deployment',
+              '',
+              `${process.env.PREVIEW_URL}`,
+              '',
+              `Built from ${context.sha.slice(0, 7)} by [this run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}).`,
+            ].join('\n');
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100,
+            });
+            const existing = comments.find(
+              (c) => c.user.type === 'Bot' && c.body && c.body.includes(marker),
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }

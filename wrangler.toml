@@ -1,0 +1,8 @@
+# Cloudflare Pages project for omarchy.thehuman.sh.
+# Deploys are made by .github/workflows/deploy.yml (production, on push to
+# main) and ci.yml (per-PR previews); `mise run deploy` is the manual escape
+# hatch. See docs/DEPLOYMENT.md.
+
+name = "omarchy-website"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-09-06"
