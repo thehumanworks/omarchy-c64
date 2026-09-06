@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Omarchy — Beautiful, Fun &amp; Opinionated Linux by DHH</title>
+    <meta
+      name="description"
+      content="Omarchy: beautiful, fun and opinionated Linux by DHH. The malleable OS for the age of agents — served from a Commodore 64."
+    />
+    <meta name="theme-color" content="#000000" />
+    <meta property="og:title" content="Omarchy — Beautiful, Fun &amp; Opinionated Linux by DHH" />
+    <meta
+      property="og:description"
+      content="The malleable OS for the age of agents. Now booting on a Commodore 64."
+    />
+    <meta property="og:type" content="website" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%232e2c9b'/><rect x='3' y='4' width='10' height='8' fill='%23706deb'/></svg>"
+    />
+    <style>
+      /*{{CSS}}*/
+    </style>
+  </head>
+  <body>
+    <canvas id="gl"></canvas>
+    <div id="hint"></div>
+
+    <div id="loader">Loading<b>&nbsp;&#9608;</b></div>
+
+    <div id="fallback">
+      <div>
+        <h1>OMARCHY</h1>
+        <p>
+          Beautiful, Fun &amp; Opinionated Linux by DHH. The malleable OS for the age of agents.
+          This page wants WebGL for its Commodore 64 — here are the plain links instead.
+        </p>
+        <nav>
+          <a href="https://omarchy.org/manual/">Manual</a>
+          <a href="https://iso.omarchy.org/omarchy-4.0.1.iso">ISO</a>
+          <a href="https://omarchyplugins.com/">Plugins</a>
+          <a href="https://github.com/omacom/omarchy">GitHub</a>
+          <a href="https://omarchy.org/security/">Security</a>
+          <a href="https://omarchy.org/news/">News</a>
+          <a href="https://omarchy.org/teams/">Teams</a>
+          <a href="https://omarchy.org/patrons/">Patrons</a>
+          <a href="https://omarchy.org/sponsorships/">Sponsorships</a>
+          <a href="https://omarchy.org/air/">AIR</a>
+          <a href="https://discord.gg/tXFUdasqhY">Discord</a>
+          <a href="https://omarchy.org/meetups/">Meetups</a>
+          <a href="https://omarchy.org/workstations/">Workstations</a>
+          <a href="https://supply.37signals.com/collections/omarchy">Merch</a>
+        </nav>
+      </div>
+    </div>
+
+    <div class="sr">
+      <h1>Omarchy — Beautiful, Fun &amp; Opinionated Linux by DHH</h1>
+      <p>
+        The malleable OS for the age of agents. Where you can vibe your way through every
+        alteration, tweak, and desire. Be the Omarch and command your agent.
+      </p>
+      <nav aria-label="Omarchy">
+        <a href="https://omarchy.org/manual/">The Manual</a>
+        <a href="https://iso.omarchy.org/omarchy-4.0.1.iso">The ISO</a>
+        <a href="https://omarchyplugins.com/">The Plugins</a>
+        <a href="https://github.com/omacom/omarchy">The Code</a>
+        <a href="https://omarchy.org/security/">Security reporting</a>
+        <a href="https://omarchy.org/news/">The News</a>
+        <a href="https://omarchy.org/teams/">The Teams</a>
+        <a href="https://omarchy.org/patrons/">The Patrons</a>
+        <a href="https://omarchy.org/sponsorships/">The Sponsorships</a>
+        <a href="https://omarchy.org/air/">Artists in Residence</a>
+        <a href="https://discord.gg/tXFUdasqhY">The Discord</a>
+        <a href="https://omarchy.org/meetups/">The Meetups</a>
+        <a href="https://omarchy.org/workstations/">The Workstations</a>
+        <a href="https://supply.37signals.com/collections/omarchy">The Merch</a>
+        <a href="https://dhh.dk/">DHH</a>
+        <a href="mailto:david@omarchy.org">david@omarchy.org</a>
+      </nav>
+    </div>
+
+    <script id="om-res">
+      window.__OM_RES__ = /*{{RES}}*/;
+    </script>
+    <script type="module">
+      try {
+        /*{{APP}}*/
+      } catch (err) {
+        console.error(err);
+        document.body.classList.add('failed');
+      }
+    </script>
+  </body>
+</html>
