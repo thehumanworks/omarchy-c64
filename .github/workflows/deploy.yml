@@ -21,6 +21,11 @@ concurrency:
 permissions:
   contents: read
 
+# bash -eo pipefail: a failing command behind `| tee` must fail the step.
+defaults:
+  run:
+    shell: bash
+
 jobs:
   deploy:
     name: Verify and deploy
@@ -83,7 +88,11 @@ jobs:
             --project-name omarchy-website \
             --branch main | tee deploy.log
           url="$(grep -Eo 'https://[a-z0-9.-]+\.pages\.dev' deploy.log | tail -n 1)"
-          echo "url=${url:-https://omarchy.thehuman.sh}" >> "$GITHUB_OUTPUT"
+          if [ -z "$url" ]; then
+            echo "Could not find a deployment URL in the wrangler output" >&2
+            exit 1
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
 
       - name: Summarise the deployment
         env:

@@ -21,4 +21,4 @@ run = "npm run check"
 
 [tasks.deploy]
 description = "Manual production deploy to Cloudflare Pages (CI does this on push to main)"
-run = "fnox run -- npx wrangler pages deploy dist --project-name omarchy-website"
+run = "fnox run -- npx --no-install wrangler pages deploy dist --project-name omarchy-website"
