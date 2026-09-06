@@ -41,6 +41,7 @@ function trackHover(p, target) {
 }
 
 function onMove(p, e) {
+  if (e.pointerType === 'touch') return; /* a finger hovers nothing; see scroll.js */
   p.mouse.ty = (e.clientY / window.innerHeight) * 2 - 1;
   if (p.drag) {
     const d = (-(e.movementY || 0) + (e.movementX || 0)) * 0.004;
@@ -83,12 +84,34 @@ function onDown(p, e) {
   p.wake();
   const hit = p.pick(e.clientX, e.clientY);
   if (!hit) return;
+  if (e.pointerType === 'touch') return onTouchDown(p, e, hit);
   if (DRAGGABLE.includes(hit)) startDrag(p, e, hit);
   else if (hit === 'power') p.togglePower();
   else if (hit === 'screen') onScreenDown(p, e);
 }
 
+/**
+ * A finger acts on release, not on contact: until it lifts we cannot know
+ * whether it was a tap or a scroll. `scroll.js` owns the drag state machine.
+ */
+function onTouchDown(p, e, hit) {
+  if (hit === 'power') return p.togglePower();
+  if (DRAGGABLE.includes(hit)) return startDrag(p, e, hit);
+  if (hit !== 'screen') return;
+  p.tap = { x: e.clientX, y: e.clientY };
+  p.scroll.start(e);
+}
+
+function onTouchUp(p) {
+  const tap = p.tap;
+  p.tap = null;
+  if (!tap || p.scroll.consumesTap()) return;
+  p.openKeyboard();
+  onScreenDown(p, { clientX: tap.x, clientY: tap.y });
+}
+
 function onUp(p, e) {
+  if (e.pointerType === 'touch') onTouchUp(p);
   if (!p.drag) return;
   p.drag = null;
   p.setHint('');
@@ -108,7 +131,8 @@ function onLeave(p) {
 
 /**
  * `deps` is `{ canvas, camera, monitor, screenMesh, crt, buffer, painter,
- * machine, content, snd, nav, boot, run, repaint, setHint, togglePower, wake }`.
+ * machine, content, snd, nav, boot, run, repaint, setHint, togglePower, wake,
+ * scroll, openKeyboard }`.
  */
 export function createPointer(deps) {
   const p = {
@@ -117,6 +141,9 @@ export function createPointer(deps) {
     knob: { bright: 0.62, contrast: 0.88, volume: 0.5 },
     mouse: { y: 0, ty: 0 },
     drag: null,
+    tap: null,
+    scroll: { start() {}, consumesTap: () => false },
+    openKeyboard() {},
   };
   const { canvas } = deps;
   canvas.addEventListener('pointermove', (e) => onMove(p, e));
@@ -124,5 +151,7 @@ export function createPointer(deps) {
   canvas.addEventListener('pointerdown', (e) => onDown(p, e));
   window.addEventListener('pointerup', (e) => onUp(p, e));
   applyKnobs(p);
-  return { mouse: p.mouse };
+  /* `attach` lets main.js hand back the two objects that are built after this
+     one: the scroll state machine (it needs `cellAt`) and the touch keyboard. */
+  return { mouse: p.mouse, cellAt: p.cellAt, attach: (extra) => Object.assign(p, extra) };
 }

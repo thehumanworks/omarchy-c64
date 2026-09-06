@@ -116,13 +116,23 @@ function preflight(k, e) {
 
 /**
  * `deps` is `{ machine, content, snd, nav, boot, run, wake, togglePower,
- * buffer }`.
+ * buffer }`. Returns `{ press }`: the one routine every key goes through,
+ * whether it came from the physical keyboard or from the on-screen one.
  */
 export function createKeyboard(deps) {
+  /** Feed a key name through the same preflight + route a real keydown takes. */
+  function press(key, { shiftKey = false } = {}) {
+    const e = { key, shiftKey, preventDefault() {} };
+    if (preflight(deps, e)) return;
+    route(deps, e);
+  }
+
   window.addEventListener('keydown', (e) => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     deps.wake();
     if (preflight(deps, e)) return;
     if (route(deps, e)) e.preventDefault();
   });
+
+  return { press };
 }

@@ -29,6 +29,8 @@ import { createLayout } from './scene/layout.js';
 import { createHint } from './input/hint.js';
 import { createPointer } from './input/pointer.js';
 import { createKeyboard } from './input/keyboard.js';
+import { createTouchKeyboard } from './input/touch-keyboard.js';
+import { createScroll } from './input/scroll.js';
 import { createLoop } from './runtime/loop.js';
 import { installFavicon } from './runtime/favicon.js';
 import { installTestHook } from './runtime/test-hook.js';
@@ -41,7 +43,13 @@ const buffer = new TextBuffer(40, 25);
 const painter = new Painter(buffer, rom);
 const machine = createMachine();
 machine.logo = makeLogo(2);
-const repaint = () => repaintPage(buffer, machine, content);
+/** The on-screen keyboard, once `main` has built it; its echo strip mirrors
+    the prompt the panel covers, so every repaint offers it a resync. */
+let kbd = null;
+const repaint = () => {
+  repaintPage(buffer, machine, content);
+  if (kbd) kbd.sync();
+};
 
 /* --------------------------------------------------------------- 3d scene */
 const canvas = document.getElementById('gl');
@@ -100,7 +108,7 @@ function wake() {
   document.body.classList.add('interacted');
 }
 
-const { mouse } = createPointer({
+const pointer = createPointer({
   canvas,
   camera,
   monitor,
@@ -120,7 +128,27 @@ const { mouse } = createPointer({
   wake,
 });
 
-createKeyboard({ machine, content, snd: Snd, nav, boot, run, wake, togglePower, buffer });
+const { mouse } = pointer;
+
+const keys = createKeyboard({
+  machine,
+  content,
+  snd: Snd,
+  nav,
+  boot,
+  run,
+  wake,
+  togglePower,
+  buffer,
+});
+
+/* Touch: one on-screen keyboard driven by the same `press`, and finger/wheel
+   scrolling for documents. Both are overlays — they never touch the layout. */
+kbd = createTouchKeyboard({ press: keys.press, machine, wake });
+pointer.attach({
+  scroll: createScroll({ canvas, cellAt: pointer.cellAt, buffer, machine, snd: Snd }),
+  openKeyboard: () => kbd.open(),
+});
 
 installTestHook({ buffer, machine, boot });
 
