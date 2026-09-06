@@ -63,10 +63,12 @@ Each directory is one layer. Arrows show allowed imports (only downward).
 runtime/   loop.js (the animate tick), favicon.js, test-hook.js
    ↓
 input/     pick.js (raycast the case and the tube), pointer.js (knobs, hover,
-           click on tube text), keyboard.js, hint.js, cursor.js (the pixel-art
-           pointer sprite that stands in for the OS cursor over the canvas;
-           `pointer.js` tells it which shape to use through
-           `canvas.dataset.pointer`)
+           click and tap on tube text), keyboard.js (one `press()` every key
+           goes through), touch-keyboard.js (the on-screen keyboard overlay
+           and its READY echo strip), scroll.js (wheel and finger scrolling of
+           a document), hint.js, cursor.js (the pixel-art pointer sprite that
+           stands in for the OS cursor over the canvas; `pointer.js` tells it
+           which shape to use through `canvas.dataset.pointer`)
    ↓
 scene/     renderer.js textures.js case.js case-geometry.js crt.js hardware.js
            room.js post.js layout.js
@@ -110,6 +112,15 @@ content/   index.js loads and normalises content/*.json (uppercase, ASCII quotes
   `solveCase`, `bandAt`, `mapX`, `mapY`) and is unit-tested; the three.js
   builder `buildCaseGeometry` lives next door in `scene/case-geometry.js` so
   `case.js` stays importable in Node.
+- **`createKeyboard`** (`input/keyboard.js`): returns `{ press(key, opts) }`.
+  A physical `keydown` and an on-screen key take the identical path — the
+  listener and `press` both run `preflight` then `route` — so the touch
+  keyboard can never drift from the real one.
+- **`createTouchKeyboard`** (`input/touch-keyboard.js`): a `position: fixed`
+  DOM overlay. It never touches the canvas, the scene or the text grid, so
+  opening or closing it fires no `resize` and shifts no layout; the panel's top
+  edge echoes the READY prompt it covers, resynced from `main.js`'s repaint
+  wrapper.
 - **Test hook** (`runtime/test-hook.js`): installs `window.__omarchy` with
   `screenText()` → array of row strings, `state()` → `{ mode, page, sel, input,
 status, powered, cols, rows, border, bg, doc: { key, off } | null }`, and
