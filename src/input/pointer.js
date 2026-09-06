@@ -124,5 +124,5 @@ export function createPointer(deps) {
   canvas.addEventListener('pointerdown', (e) => onDown(p, e));
   window.addEventListener('pointerup', (e) => onUp(p, e));
   applyKnobs(p);
-  return { mouse: p.mouse, knob: p.knob };
+  return { mouse: p.mouse };
 }

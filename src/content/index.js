@@ -24,7 +24,7 @@ import workstations from '../../content/pages/workstations.json' with { type: 'j
 const PAGE_FILES = [manual, air, security, news, teams, patrons, sponsors, meetups, workstations];
 
 /** Upper-case, and fold the typographic quotes a scraper leaves behind. */
-export function normalise(text) {
+function normalise(text) {
   return String(text).toUpperCase().replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
 }
 
@@ -66,6 +66,3 @@ export const strings = deep(stringsJson);
 
 /** First-party pages, keyed by the menu label that opens them. */
 export const pages = Object.fromEntries(PAGE_FILES.map((p) => [p.key, normalisePage(p)]));
-
-/** The page a menu label opens on the tube, or `undefined` for an outside link. */
-export const pageFor = (label) => pages[label];

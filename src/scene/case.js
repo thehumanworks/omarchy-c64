@@ -24,7 +24,7 @@ export const COLB = [
   [1120, 1162, 'f'],
 ];
 
-export const ROWB = [
+const ROWB = [
   [0, 45, 'f'],
   [45, 85, 's'],
   [85, 175, 'f'],
@@ -35,7 +35,7 @@ export const ROWB = [
 ];
 
 /** badge | gap | knobs */
-export const STRB = [
+const STRB = [
   [0, 500, 'f'],
   [500, 650, 's'],
   [650, 1162, 'f'],

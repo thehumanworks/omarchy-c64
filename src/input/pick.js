@@ -10,7 +10,7 @@ import { MON } from '../scene/hardware.js';
 import { TextBuffer } from '../screen/text-buffer.js';
 
 /** knob and switch hot spots, in case-texture UV */
-export const HOT = {
+const HOT = {
   bright: { u: 0.6145, v: 0.923, r: 0.035 },
   contrast: { u: 0.709, v: 0.923, r: 0.035 },
   volume: { u: 0.804, v: 0.923, r: 0.035 },

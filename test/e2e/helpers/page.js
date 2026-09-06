@@ -67,23 +67,15 @@ export function screenText(page) {
 }
 
 /**
- * Get to the main menu. The page skips its boot sequence on any keydown, so the
- * legacy build is handled with a Shift press; once the hook exists we ask for it
- * directly. Never times the animation by wall clock: under SwiftShader the boot
- * runs at roughly 10 fps and any frame-count assumption would flake.
+ * Get to the main menu through the test hook, then wait for the machine to be
+ * in app mode. Never times the animation by wall clock: under SwiftShader the
+ * boot runs at roughly 10 fps and any frame-count assumption would flake.
  */
 export async function skipBoot(page) {
-  const hook = await hasHook(page);
-  if (hook) await page.evaluate(() => window.__omarchy.skipBoot());
-  else await page.keyboard.press('Shift');
-
-  if (hook) {
-    await page.waitForFunction(() => window.__omarchy.state().mode === 'app', null, {
-      timeout: 30_000,
-    });
-  } else {
-    await page.waitForTimeout(2000);
-  }
+  await page.evaluate(() => window.__omarchy.skipBoot());
+  await page.waitForFunction(() => window.__omarchy.state().mode === 'app', null, {
+    timeout: 30_000,
+  });
   await page.waitForTimeout(SETTLE_MS);
 }
 

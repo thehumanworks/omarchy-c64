@@ -102,7 +102,7 @@ what the screen looks like:
 ```sh
 npm run build
 npx playwright test --update-snapshots
-git add test/e2e/**/*-snapshots/**
+git add test/e2e/__screenshots__
 ```
 
 Then **look at the new images before committing them**. `--update-snapshots`

@@ -67,3 +67,8 @@ test('a missing marker fails the build loudly', () => {
   assert.equal(inline('a/*{{X}}*/b', 'X', 'Q'), 'aQb');
   assert.throws(() => inline('no marker here', 'APP', 'x'), /missing the/);
 });
+
+test('the three.js MIT licence notice ships inside the page', () => {
+  assert.ok(html.includes('Three.js Authors'), 'the three.js copyright line is missing');
+  assert.ok(html.includes('SPDX-License-Identifier: MIT'), 'the SPDX MIT identifier is missing');
+});

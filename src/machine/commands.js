@@ -15,6 +15,7 @@ const strings = (ctx) => ctx.content.strings;
 
 const show = (ctx, page, lines, title) => {
   ctx.machine.page = page;
+  ctx.machine.hits = []; /* the menu's clickable rows must not outlive it */
   renderTextPage(ctx.buffer, lines, title);
 };
 

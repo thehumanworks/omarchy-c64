@@ -35,7 +35,7 @@ const RT_OPT = {
 };
 
 /** A plane with a gentle spherical bulge, like real glass. */
-export function makeScreenGeo(w, h) {
+function makeScreenGeo(w, h) {
   const g = new THREE.PlaneGeometry(w, h, 64, 44);
   const p = g.attributes.position;
   const bulge = 0.05 * Math.min(w, h);

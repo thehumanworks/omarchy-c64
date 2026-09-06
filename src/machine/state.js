@@ -2,7 +2,7 @@
  * The UI state of the machine: what mode it is in, which page is on the tube,
  * what has been typed, and where the clickable text is. A plain object with
  * one instance, created by `main.js`. Owns nothing else — the grid size lives
- * on the `TextBuffer`, the CRT knobs live in `src/scene/crt.js`.
+ * on the `TextBuffer`, the knob positions live in `src/input/pointer.js`.
  * May import `src/text/` only.
  */
 

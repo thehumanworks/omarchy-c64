@@ -43,7 +43,7 @@ async function bundle() {
     target: 'es2022',
     minify: true,
     write: false,
-    legalComments: 'none',
+    legalComments: 'inline' /* three.js is MIT: its notice must ship */,
     logLevel: 'silent',
   });
   return result.outputFiles[0].text;

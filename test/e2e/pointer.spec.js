@@ -8,7 +8,7 @@ const VIEWPORT = { width: 1280, height: 800 };
 
 async function atMenu(page) {
   await openSite(page, { viewport: VIEWPORT });
-  test.skip(!(await hasHook(page)), 'test hook not built yet');
+  expect(await hasHook(page), 'window.__omarchy test hook is missing').toBe(true);
   await skipBoot(page);
 }
 

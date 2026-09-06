@@ -23,7 +23,7 @@ const LABELS = [
 
 async function atMenu(page, viewport) {
   await openSite(page, { viewport });
-  test.skip(!(await hasHook(page)), 'test hook not built yet');
+  expect(await hasHook(page), 'window.__omarchy test hook is missing').toBe(true);
   await skipBoot(page);
 }
 

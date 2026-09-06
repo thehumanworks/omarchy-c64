@@ -31,7 +31,7 @@ const LABELS = [
 /** Open the page, get to the menu, and bail out cleanly on a hook-less build. */
 async function atMenu(page, viewport) {
   await openSite(page, viewport ? { viewport } : {});
-  test.skip(!(await hasHook(page)), 'test hook not built yet');
+  expect(await hasHook(page), 'window.__omarchy test hook is missing').toBe(true);
   await skipBoot(page);
 }
 

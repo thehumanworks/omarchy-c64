@@ -14,7 +14,7 @@ import { LED_FRAGMENT } from './shaders/led-fragment.js';
 /** The case photograph's world size: 1162 x 1000 texels at 0.001 each. */
 export const MON = { w: 1.162, h: 1.0 };
 
-export function hardwareMaterial(map, o = {}) {
+function hardwareMaterial(map, o = {}) {
   return new THREE.ShaderMaterial({
     uniforms: {
       map: { value: map },
@@ -32,7 +32,7 @@ export function hardwareMaterial(map, o = {}) {
   });
 }
 
-export function ledMaterial(hex) {
+function ledMaterial(hex) {
   return new THREE.ShaderMaterial({
     uniforms: { uOn: { value: 0 }, uCol: { value: new THREE.Color(hex) } },
     transparent: true,
@@ -44,7 +44,7 @@ export function ledMaterial(hex) {
   });
 }
 
-export function ledMesh(mat, size) {
+function ledMesh(mat, size) {
   const m = new THREE.Mesh(new THREE.PlaneGeometry(size, size), mat);
   m.renderOrder = 8;
   return m;

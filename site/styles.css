@@ -86,68 +86,6 @@ body.ready #gl {
   }
 }
 
-/* corner marks */
-.corner {
-  position: fixed;
-  z-index: 4;
-  font-size: 10px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgba(141, 141, 255, 0.42);
-  pointer-events: none;
-  text-shadow: 0 0 12px rgba(112, 109, 235, 0.5);
-}
-.corner a {
-  color: rgba(141, 141, 255, 0.62);
-  pointer-events: auto;
-  text-decoration: none;
-  border-bottom: 1px solid rgba(141, 141, 255, 0.25);
-}
-.corner a:hover {
-  color: #cfd4ff;
-  border-bottom-color: #cfd4ff;
-}
-#tl {
-  top: 20px;
-  left: 22px;
-}
-#tr {
-  top: 20px;
-  right: 22px;
-  text-align: right;
-}
-@media (max-width: 720px) {
-  .corner {
-    font-size: 9px;
-  }
-  #tl,
-  #tr {
-    top: 12px;
-  }
-  #tl {
-    left: 12px;
-  }
-  #tr {
-    right: 12px;
-  }
-}
-@media (max-height: 520px) {
-  .corner {
-    display: none;
-  }
-}
-/* narrow phones: drop the second line of each corner so they cannot collide */
-@media (max-width: 520px) {
-  .corner {
-    font-size: 8px;
-    letter-spacing: 0.16em;
-  }
-  #tl b,
-  #tr b {
-    display: none;
-  }
-}
-
 /* real links for machines and keyboards without a mouse */
 .sr {
   position: absolute;

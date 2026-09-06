@@ -180,3 +180,12 @@ test('anything else is a syntax error', () => {
   assert.equal(ctx.machine.status, '?SYNTAX  ERROR');
   assert.deepEqual(ctx.calls, [['beep', 180, 0.15, 'square', 0.1, -60]]);
 });
+
+test('a static page drops the menu hit boxes so old rows are not clickable', () => {
+  for (const cmd of ['HELP', 'ABOUT', 'LIST', 'DIR']) {
+    const ctx = ctxFor();
+    ctx.machine.hits = [{ r: 14, x0: 2, x1: 18, menu: 0 }];
+    exec(cmd, ctx);
+    assert.deepEqual(ctx.machine.hits, [], `${cmd} left the menu hit boxes behind`);
+  }
+});

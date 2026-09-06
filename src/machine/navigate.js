@@ -80,5 +80,5 @@ export function createNavigator(deps) {
     machine.doc.off = 0;
   }
 
-  return { newTab, openDoc, openLink, follow, launch, relayoutDoc };
+  return { openLink, follow, launch, relayoutDoc };
 }

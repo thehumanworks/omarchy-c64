@@ -18,8 +18,11 @@ This file is the map. Read it before touching `src/`.
 3. **Pure core, thin shell.** Text layout, the character buffer, page
    renderers, the command interpreter and the nine-slice case maths are pure
    modules: importable in plain Node, no DOM or WebGL globals at import time.
-   Only `src/main.js`, `src/screen/painter.js`, `src/scene/**`, `src/input/**`
-   and `src/runtime/**` may touch `window`, `document` or three.js.
+   The DOM and three.js are used freely by `src/main.js`, `src/screen/painter.js`,
+   `src/scene/**`, `src/input/**` and `src/runtime/**`. Two pure-layer modules
+   touch `document` inside functions only, never at import time:
+   `src/machine/navigate.js` (opening tabs and mailto links) and
+   `src/screen/logo.js` (drawing the wordmark on a canvas).
 4. **No import cycles** (lint-enforced). `main.js` is the composition root:
    it creates the objects and wires callbacks. Modules do not reach up to
    their callers.

@@ -2,7 +2,7 @@
  * The main menu: wordmark, tagline, blurb and the 14 numbered entries in a
  * box. Writes the clickable boxes into `machine.hits`.
  * Takes `(buffer, machine, content)` and touches nothing else.
- * May import `src/text/` only.
+ * May import `src/text/` and `src/screen/text-buffer.js`.
  */
 
 import { wrap } from '../text/wrap.js';
