@@ -49,7 +49,7 @@ function makeScreenGeo(w, h) {
 }
 
 export function createCrt(painter) {
-  const screenTex = canvasTexture(painter.canvas);
+  let screenTex = canvasTexture(painter.canvas);
   const persist = [
     new THREE.WebGLRenderTarget(painter.width, painter.height, RT_OPT),
     new THREE.WebGLRenderTarget(painter.width, painter.height, RT_OPT),
@@ -102,6 +102,10 @@ export function createCrt(painter) {
 
   /** Match the persistence buffers to a new grid size. */
   function setResolution(w, h) {
+    // Uploaded texture dimensions are immutable, even for a resized canvas.
+    screenTex.dispose();
+    screenTex = canvasTexture(painter.canvas);
+    matPersist.uniforms.uNew.value = screenTex;
     persist[0].setSize(w, h);
     persist[1].setSize(w, h);
     crt.uniforms.uRes.value.set(w, h);
