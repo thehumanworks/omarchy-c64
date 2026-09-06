@@ -1,14 +1,7 @@
-/**
- * The hardware label pill that follows what you point at.
- * Owns the `#hint` element. Imports nothing.
- */
-
-export function createHint(el) {
-  let shown = '';
-  return function setHint(t) {
-    if (t === shown) return;
-    shown = t;
-    el.textContent = t || '';
-    el.classList.toggle('on', !!t);
+/** Pointer labels are metadata for picking tests; no floating UI is drawn. */
+export function createHint(canvas) {
+  canvas.dataset.hint = '';
+  return function setHint(text) {
+    if (canvas.dataset.hint !== text) canvas.dataset.hint = text || '';
   };
 }

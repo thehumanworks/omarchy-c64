@@ -64,14 +64,13 @@ runtime/   loop.js (the animate tick), favicon.js, test-hook.js
    ↓
 input/     pick.js (raycast the case and the tube), pointer.js (knobs, hover,
            click and tap on tube text), keyboard.js (one `press()` every key
-           goes through), touch-keyboard.js (the on-screen keyboard overlay
-           and its READY echo strip), scroll.js (wheel and finger scrolling of
-           a document), hint.js, cursor.js (the pixel-art pointer sprite that
+           goes through), monitor-controls.js (bezel rocker and Enter), scroll.js (wheel and finger scrolling of
+           a document), hint.js (pointer-label metadata only), cursor.js (the pixel-art pointer sprite that
            stands in for the OS cursor over the canvas; `pointer.js` tells it
            which shape to use through `canvas.dataset.pointer`)
    ↓
 scene/     renderer.js textures.js case.js case-geometry.js crt.js hardware.js
-           room.js post.js layout.js
+           room.js post.js layout.js control-bounds.js
            shaders/*.js  (each shader is one file exporting a GLSL string)
    ↓
 machine/   state.js chrome.js menu.js doc.js doc-lines.js text-page.js
@@ -112,15 +111,24 @@ content/   index.js loads and normalises content/*.json (uppercase, ASCII quotes
   `solveCase`, `bandAt`, `mapX`, `mapY`) and is unit-tested; the three.js
   builder `buildCaseGeometry` lives next door in `scene/case-geometry.js` so
   `case.js` stays importable in Node.
-- **`createKeyboard`** (`input/keyboard.js`): returns `{ press(key, opts) }`.
-  A physical `keydown` and an on-screen key take the identical path — the
-  listener and `press` both run `preflight` then `route` — so the touch
-  keyboard can never drift from the real one.
-- **`createTouchKeyboard`** (`input/touch-keyboard.js`): a `position: fixed`
-  DOM overlay. It never touches the canvas, the scene or the text grid, so
-  opening or closing it fires no `resize` and shifts no layout; the panel's top
-  edge echoes the READY prompt it covers, resynced from `main.js`'s repaint
-  wrapper.
+- **`createKeyboard`** (`input/keyboard.js`): returns `{ press }`.
+  Physical keydown and monitor hardware share the same command handler.
+  Command text is drawn on the CRT; there is no HTML input or mobile keyboard.
+- **`createMonitorControls`** (`input/monitor-controls.js`): touch devices get
+  an imagegen-authored rocker and Enter button on the lower bezel. Native DOM
+  buttons project onto their photographed positions using `control-bounds.js`,
+  tracking the same camera and nine-slice as the monitor. Each control is at
+  least 44 CSS pixels; the knob supports directional taps, drags and holding.
+  Cancellation/blur stops repeat. The render loop syncs their bounds even
+  during boot or while powered off. Enter opens the selection or returns from
+  a document; the rocker uses the existing arrow-key navigation and scrolling.
+  There are no floating hover badges on any device. Desktop keeps the original photographed
+  brightness/contrast/volume controls. See [MOBILE-CONTROLS.md](MOBILE-CONTROLS.md)
+  for the generated asset, prompt, mapping and visual verification.
+- **`createCursor`** (`input/cursor.js`): one compact sprite for both pointer
+  types. A touch device starts with it visible; touching/dragging moves it to
+  the finger position and release/cancel leaves it there. It is clamped to
+  the visible viewport. Mouse leave still restores the OS pointer.
 - **Test hook** (`runtime/test-hook.js`): installs `window.__omarchy` with
   `screenText()` → array of row strings, `state()` → `{ mode, page, sel, input,
 status, powered, cols, rows, border, bg, doc: { key, off } | null }`, and

@@ -23,13 +23,15 @@ export function createPicker(deps) {
   const ptr = new THREE.Vector2();
 
   function aim(cx, cy) {
-    ptr.x = (cx / window.innerWidth) * 2 - 1;
-    ptr.y = -(cy / window.innerHeight) * 2 + 1;
+    const rect = deps.canvas.getBoundingClientRect();
+    ptr.x = ((cx - rect.left) / rect.width) * 2 - 1;
+    ptr.y = -((cy - rect.top) / rect.height) * 2 + 1;
     ray.setFromCamera(ptr, camera);
   }
 
   function knobAt(u, v) {
     for (const k of Object.keys(HOT)) {
+      if (deps.navigation && k !== 'power') continue;
       const s = HOT[k];
       if (Math.hypot((u - s.u) * MON.w, (v - s.v) * MON.h) < s.r) return k;
     }

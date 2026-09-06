@@ -19,10 +19,12 @@ test('every template marker was filled in', () => {
   assert.ok(!html.includes('/*{{'), 'an unreplaced marker is left in the output');
 });
 
-test('the canvas, the loader and the hint pill are still there', () => {
+test('the canvas and loader remain, without floating badges or input fields', () => {
   assert.ok(html.includes('id="gl"'));
   assert.ok(html.includes('id="loader"'));
-  assert.ok(html.includes('id="hint"'));
+  assert.ok(!html.includes('id="hint"'));
+  assert.ok(!html.includes('id="command"'));
+  assert.ok(!/<(?:input|textarea)\b/.test(html));
   assert.ok(html.includes('id="fallback"'));
   assert.ok(html.includes('class="sr"'));
 });
@@ -47,7 +49,7 @@ test('the assets are inlined as base64', () => {
 });
 
 test('the stylesheet was inlined, not linked', () => {
-  assert.ok(html.includes('#hint.on'), 'the hint pill rule is missing');
+  assert.ok(!html.includes('#hint.on'), 'a floating badge style remains');
   assert.ok(html.includes('body.ready #gl'), 'the reveal rule is missing');
   assert.ok(!html.includes('<link rel="stylesheet"'));
 });

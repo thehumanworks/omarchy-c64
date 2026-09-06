@@ -97,13 +97,14 @@ add its help line to `content/strings.json`, add a case to
 **Change what the menu links to.** `content/menu.json`. Labels with a matching
 `content/pages/<LABEL>.json` open on the tube; anything else opens a tab.
 
-**Change the on-screen keyboard.** The key rows and the control row are the
-two tables at the top of `src/input/touch-keyboard.js`; each entry is a label
-plus the key name `createKeyboard`'s `press()` understands, so a new key needs
-no new behaviour. Its look is the block at the end of `site/styles.css` (one
-20-column grid per row). Never add an `<input>`: the panel must not raise the
-native soft keyboard. Prove it with `npx playwright test test/e2e/touch.spec.js`
-and look at the `phone-keyboard` golden.
+**Change mobile input.** The bezel rocker and Enter button in
+`src/input/monitor-controls.js` handle touch navigation without a keyboard.
+Their artwork and projection are documented in `docs/MOBILE-CONTROLS.md`.
+Do not add a custom keyboard, HTML command input, KBD toggle or floating hover
+badge. Commands and feedback belong on the CRT; physical keyboards still
+work. Prove changes with `npx playwright test test/e2e/monitor-controls.spec.js
+test/e2e/touch.spec.js` and inspect the `phone-monitor-controls` and
+`phone-no-badges` goldens.
 
 **Tweak the CRT look.** `src/scene/shaders/*.js` hold the GLSL, `src/scene/crt.js`
 the uniforms and defaults, `src/scene/post.js` the bloom and final grade. Every

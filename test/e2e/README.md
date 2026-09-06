@@ -20,19 +20,20 @@ Report: `playwright-report/` (`--reporter=html`, never auto-opened).
 
 ## Suites
 
-| file                 | what it proves                                                                               |
-| -------------------- | -------------------------------------------------------------------------------------------- |
-| `boot.spec.js`       | WebGL starts, no errors, loader gone, `.sr` fallback nav intact                              |
-| `fallback.spec.js`   | with WebGL denied the body fails over to the 14 plain links                                  |
-| `visual.spec.js`     | golden screenshots at desktop / phone / ultrawide                                            |
-| `menu.spec.js`       | the tube's text: menu, docs, `HELP`, `POKE`, `SYS 64738`                                     |
-| `pointer.spec.js`    | hardware hover labels, clicking a menu row, third-party new tab                              |
-| `responsive.spec.js` | the grid reflows: narrow+tall on a phone, 40 columns when wide                               |
-| `content.spec.js`    | every first-party page opens, shows its title and first heading, scrolls, links are hittable |
-| `navigation.spec.js` | Tab cycling, names and prefixes, HELP/ABOUT/LIST/DIR, shortcuts, power switch, knob drag     |
-| `layout.spec.js`     | six viewports: grid bounds, rows fit, menu box intact; iPad goldens                          |
-| `touch.spec.js`      | the on-screen keyboard: opens on tap, no layout shift, fits, types; swipe and wheel scroll   |
-| `cursor.spec.js`     | the retro pointer: shows over the canvas, hand over links, hides on leave, touch echo        |
+| file                       | what it proves                                                                                    |
+| -------------------------- | ------------------------------------------------------------------------------------------------- |
+| `boot.spec.js`             | WebGL starts, no errors, loader gone, no floating badge, `.sr` fallback nav intact                |
+| `fallback.spec.js`         | with WebGL denied the body fails over to the 14 plain links                                       |
+| `visual.spec.js`           | golden screenshots at desktop / phone / ultrawide                                                 |
+| `menu.spec.js`             | the tube's text: menu, docs, `HELP`, `POKE`, `SYS 64738`                                          |
+| `pointer.spec.js`          | hardware hover labels, clicking a menu row, third-party new tab                                   |
+| `responsive.spec.js`       | the grid reflows: narrow+tall on a phone, 40 columns when wide                                    |
+| `content.spec.js`          | every first-party page opens, shows its title and first heading, scrolls, links are hittable      |
+| `navigation.spec.js`       | Tab cycling, names and prefixes, HELP/ABOUT/LIST/DIR, shortcuts, power switch, knob drag          |
+| `layout.spec.js`           | six viewports: grid bounds, rows fit, menu box intact; iPad goldens                               |
+| `touch.spec.js`            | no editable field or badges, stable touch geometry, link taps and swipe/wheel scroll              |
+| `monitor-controls.spec.js` | bezel rocker and Enter: navigation, repeat/cancel, boot, landscape and iPad hit targets           |
+| `cursor.spec.js`           | the retro pointer: shows over the canvas, hand over links, hides on mouse leave, persistent touch |
 
 ## The test hook
 
@@ -85,3 +86,17 @@ you just want to eyeball a change:
 ```sh
 node test/e2e/helpers/shots.mjs dist/index.html /tmp/shots
 ```
+
+## Mobile hardware verification
+
+Touch uses the photographed rocker and Enter button, with no native/custom
+keyboard or HTML input field. `monitor-controls.spec.js` covers selection,
+scrolling, Enter, holding/cancelling, boot and landscape/iPad target alignment.
+`touch.spec.js` proves there are no floating badges, that physical command text
+stays on the CRT, and that taps leave the layout stable. `phone-no-badges` is
+the regression golden for the former floating HELP input field.
+
+On an iPhone/iPad, use the rocker to select/scroll and Enter to open the entry
+or return to the menu. Holding repeats; lifting or cancelling stops it. Taps
+and document swipes must never raise a keyboard or floating badge. The cursor
+stays visible after release and follows the next touch.

@@ -117,7 +117,7 @@ function preflight(k, e) {
 /**
  * `deps` is `{ machine, content, snd, nav, boot, run, wake, togglePower,
  * buffer }`. Returns `{ press }`: the one routine every key goes through,
- * whether it came from the physical keyboard or from the on-screen one.
+ * whether it came from a physical keyboard or the monitor controls.
  */
 export function createKeyboard(deps) {
   /** Feed a key name through the same preflight + route a real keydown takes. */
@@ -128,6 +128,7 @@ export function createKeyboard(deps) {
   }
 
   window.addEventListener('keydown', (e) => {
+    if (e.target instanceof HTMLButtonElement && ['Enter', ' '].includes(e.key)) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     deps.wake();
     if (preflight(deps, e)) return;

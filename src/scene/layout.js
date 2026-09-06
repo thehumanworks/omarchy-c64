@@ -7,7 +7,7 @@
  */
 
 import { gridFor } from '../text/grid.js';
-import { solveCase, mapX, mapY } from './case.js';
+import { solveCase, mapX, mapY, bandAt } from './case.js';
 import { MON, reshapeMonitor } from './hardware.js';
 import { OVER } from './crt.js';
 
@@ -62,13 +62,16 @@ export function createLayout(deps) {
       tube.touch();
     }
     fitPicture(ap);
-    deps.ledPower.position.set(mapX(caseState, 1033), mapY(caseState, 893), 0.012);
+    const px = deps.navigation
+      ? -caseState.w / 2 + bandAt(caseState.strip, 1024)
+      : mapX(caseState, 1033);
+    deps.ledPower.position.set(px, mapY(caseState, deps.navigation ? 881 : 893), 0.012);
     rig.position.set(0, caseState.oy, 0);
   }
 
   function layout() {
-    const w = window.innerWidth;
-    const h = window.innerHeight;
+    const w = renderer.domElement.clientWidth;
+    const h = renderer.domElement.clientHeight;
     const dpr = Math.min(window.devicePixelRatio || 1, w * h > 2600000 ? 1.6 : 2);
     renderer.setPixelRatio(dpr);
     renderer.setSize(w, h, false);
@@ -77,6 +80,7 @@ export function createLayout(deps) {
     post.sizeTargets(Math.max(2, Math.floor(w * dpr)), Math.max(2, Math.floor(h * dpr)));
     const vfov = (camera.fov * Math.PI) / 180;
     caseState = solveCase(BLEED * camera.aspect, BLEED);
+    view.caseState = caseState;
     view.z = 1 / (2 * Math.tan(vfov / 2));
     camera.updateProjectionMatrix();
     syncCase();
