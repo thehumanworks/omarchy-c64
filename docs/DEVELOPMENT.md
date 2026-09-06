@@ -42,7 +42,9 @@ Every command is an npm script. Use them; do not invent ad-hoc invocations.
 | `npm run sync:check`   | The same, dry run; exits 1 if anything would change  | The committed content is in step with the sources.                                                                    |
 | `npm run check`        | lint → format:check → test → build → test:e2e        | Everything. This is the gate.                                                                                         |
 
-`mise run check` is a thin alias for `npm run check`.
+`mise run check`, `mise run sync` and `mise run sync:check` are thin aliases for
+the npm scripts of the same name, so `mise tasks` lists everything worth running
+from a fresh clone without reading `package.json` first.
 
 ### Sync flags
 
@@ -66,17 +68,42 @@ Hooks are managed by [hk](https://hk.jdx.dev); the configuration is
 **pre-commit** — fixes what it can and re-stages the result. Unstaged work is
 stashed first, so the hooks judge exactly what you are committing:
 
-| Step         | Scope                                                                                  |
-| ------------ | -------------------------------------------------------------------------------------- |
-| `prettier`   | every file prettier understands, minus `.prettierignore`                               |
-| `eslint`     | `src/**`, `build/**`, `test/**`, `scripts/**`, `*.config.js` — with `--max-warnings 0` |
-| `actionlint` | `.github/workflows/*.yml`                                                              |
-| `pkl`        | `*.pkl` (so `hk.pkl` itself keeps evaluating)                                          |
-| `gitleaks`   | the whole tree — a credential can land anywhere                                        |
-| `unit-tests` | `npm run test` when JS, content or `package.json` changed                              |
+| Step            | Scope                                                                                                                  |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `prettier`      | every file prettier understands, minus `.prettierignore`                                                               |
+| `eslint`        | `src/**`, `build/**`, `test/**`, `scripts/**`, `*.config.js` — with `--max-warnings 0`                                 |
+| `actionlint`    | `.github/workflows/*.yml`                                                                                              |
+| `pkl`           | `*.pkl` (so `hk.pkl` itself keeps evaluating)                                                                          |
+| `gitleaks`      | the whole tree — a credential can land anywhere                                                                        |
+| `unit-tests`    | `npm run test` when JS, content or `package.json` changed                                                              |
+| `content-fresh` | `npm run sync:check` when `content/pages/**`, `content/menu.json`, `content/sources.json` or `scripts/sync/**` changed |
 
 Each step is scoped by glob, so a commit that only edits a workflow file does
 not run eslint or the test suite.
+
+`content-fresh` is check-only, in `pre-commit` and in `hk check` but not in
+`hk fix`: the repair is `mise run sync`, which rewrites editorial copy, and copy
+is not something a hook may change behind you. It is also the only step that
+needs the public internet — see below.
+
+### Working offline
+
+`content-fresh` talks to omarchy.org, github.com and lu.ma. On a plane, skip
+that one step by name with hk's own mechanism:
+
+```sh
+HK_SKIP_STEPS=content-fresh git commit -m "..."
+HK_SKIP_STEPS=content-fresh hk check      # same, without committing
+hk check -S eslint -S prettier            # or: run only the steps you want
+```
+
+`HK_SKIP_STEPS` takes a comma-separated list of step names and skips exactly
+those; every other hook still runs, which is the whole point. `hk check`'s
+`--step/-S` flag is the positive form of the same idea.
+
+**This is the only sanctioned bypass, and it is not `--no-verify`.** `git commit
+--no-verify` turns off prettier, eslint, gitleaks and the unit suite as well,
+and is forbidden. Re-run `hk check` once you are back on the network.
 
 **pre-push** — the expensive proof, run once per push instead of once per
 commit: `npm run build`, then `npm run test:e2e` against the freshly built
@@ -106,6 +133,28 @@ npx playwright test test/e2e/boot.spec.js     # one file
 npx playwright test --headed                  # watch it happen
 npx playwright show-report                    # after a failure
 ```
+
+What each suite proves:
+
+| Suite                | What it proves                                                                                                                                                                                 |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `boot.spec.js`       | WebGL starts, no errors, the loader goes away, the `.sr` fallback nav is intact                                                                                                                |
+| `fallback.spec.js`   | with WebGL denied the body fails over to the fourteen plain links                                                                                                                              |
+| `menu.spec.js`       | the tube's text: the menu, one doc, `HELP`, `POKE`, `SYS 64738`                                                                                                                                |
+| `pointer.spec.js`    | hardware hover labels, clicking a menu row, a third-party entry opening a tab                                                                                                                  |
+| `responsive.spec.js` | the grid reflows: narrow and tall on a phone, forty columns when wide                                                                                                                          |
+| `content.spec.js`    | one test per first-party page: it opens by number, shows its title and first heading, every `A` node becomes a hit box, `End`/`Home`/`Escape` behave                                           |
+| `navigation.spec.js` | Tab cycles the selection, a label and a three-letter prefix open the right doc, `HELP`/`ABOUT`/`LIST`/`DIR`/`RUN`, syntax errors, a shortcut's new tab, the power switch and the BRIGHT knob   |
+| `layout.spec.js`     | six viewports from a phone to 2560 wide: clean boot, the grid within its limits, no row wider than the tube, the menu box whole, the prompt and ticker on screen — plus the two tablet goldens |
+| `visual.spec.js`     | golden screenshots at desktop, phone and ultrawide                                                                                                                                             |
+
+`content.spec.js`, `navigation.spec.js` and `layout.spec.js` import
+`src/content/index.js` directly — it is a pure module — so their expectations
+are derived from `content/*.json` rather than copied out of it. Editing the copy
+does not mean editing the tests. The shared tables live in
+`test/e2e/helpers/content.js`, and `test/e2e/helpers/tube.js` converts an
+expected string into what the character ROM can actually draw (`asTube`), which
+is why `X86_64` is asserted as `X86·64`.
 
 Failures leave `playwright-report/` and `test-results/` behind, with the actual
 / expected / diff images for any visual assertion. CI uploads both directories

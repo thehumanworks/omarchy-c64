@@ -135,6 +135,37 @@ A weekly GitHub Actions run (`.github/workflows/sync-content.yml`, Mondays at
 with the diff summary in the body. It never pushes to `main`: the diff is copy,
 and a human should read it.
 
+### Is the content up to date?
+
+Three things ask that question, in rising order of patience:
+
+| Where                        | What it does                                                                                                                                                                            | When it is wrong                                       |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| the `content-fresh` git hook | runs `npm run sync:check` on any commit that touches `content/pages/**`, `content/menu.json`, `content/sources.json` or `scripts/sync/**`, and refuses the commit if the tree is behind | you hand-edited a page instead of syncing it           |
+| the `content-fresh` CI job   | the same check on every branch and pull request, advisory: it cannot fail the run, it writes a `::warning::` annotation saying `content/ is behind omarchy.org, run npm run sync`       | omarchy.org moved while your branch was open           |
+| the weekly sync PR           | `.github/workflows/sync-content.yml`, Mondays 06:00 UTC, opens a pull request on `content-sync`                                                                                         | nobody read it — the copy is a diff, it wants a reader |
+
+The hook is the strict one because it guards the thing an agent is most likely
+to get wrong: editing `content/pages/*.json` by hand. The fix is never to argue
+with the hook, it is:
+
+```sh
+mise run sync         # or npm run sync
+```
+
+then read the diff summary it prints and commit `content/`. The CI job is
+deliberately toothless: the upstream page moving is not a reason to block a
+merge, and it is the one job that needs the public internet.
+
+**Offline**, `sync:check` cannot run. Skip that step by name — never
+`--no-verify`, which would turn off the linters and the unit suite too:
+
+```sh
+HK_SKIP_STEPS=content-fresh git commit -m "..."
+```
+
+See [DEVELOPMENT.md](DEVELOPMENT.md#working-offline).
+
 ### Changing where a page comes from
 
 The source is _expected_ to move. The node tuples are the stable contract;
