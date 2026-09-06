@@ -1,0 +1,72 @@
+[
+  {
+    "label": "MANUAL",
+    "url": "https://omarchy.org/manual/",
+    "blocks": 41
+  },
+  {
+    "label": "ISO",
+    "url": "https://iso.omarchy.org/omarchy-4.0.1.iso",
+    "blocks": 255
+  },
+  {
+    "label": "PLUGINS",
+    "url": "https://omarchyplugins.com/",
+    "blocks": 63
+  },
+  {
+    "label": "GITHUB",
+    "url": "https://github.com/omacom/omarchy",
+    "blocks": 128
+  },
+  {
+    "label": "SECURITY",
+    "url": "https://omarchy.org/security/",
+    "blocks": 9
+  },
+  {
+    "label": "NEWS",
+    "url": "https://omarchy.org/news/",
+    "blocks": 22
+  },
+  {
+    "label": "TEAMS",
+    "url": "https://omarchy.org/teams/",
+    "blocks": 14
+  },
+  {
+    "label": "PATRONS",
+    "url": "https://omarchy.org/patrons/",
+    "blocks": 18
+  },
+  {
+    "label": "SPONSORS",
+    "url": "https://omarchy.org/sponsorships/",
+    "blocks": 11
+  },
+  {
+    "label": "AIR",
+    "url": "https://omarchy.org/air/",
+    "blocks": 27
+  },
+  {
+    "label": "DISCORD",
+    "url": "https://discord.gg/tXFUdasqhY",
+    "blocks": 64
+  },
+  {
+    "label": "MEETUPS",
+    "url": "https://omarchy.org/meetups/",
+    "blocks": 12
+  },
+  {
+    "label": "WORKSTATIONS",
+    "url": "https://omarchy.org/workstations/",
+    "blocks": 33
+  },
+  {
+    "label": "MERCH",
+    "url": "https://supply.37signals.com/collections/omarchy",
+    "blocks": 17
+  }
+]

@@ -1,0 +1,108 @@
+{
+  "key": "NEWS",
+  "title": "OMARCHY NEWS",
+  "url": "https://omarchy.org/news/",
+  "nodes": [
+    ["H2", "Announcements, releases, and other news"],
+    ["H3", "The first plugin competition winners"],
+    ["KV", "Date", "August 28, 2026"],
+    [
+      "P",
+      "Radio Atlas, Omagotchi, and AirPods take the podium in the first Omarchy plugin competition."
+    ],
+    ["A", "Read more", "https://omarchy.org/news/2026/08/the-first-plugin-competition-winners"],
+    ["H3", "Introducing Omarchy AIR"],
+    ["KV", "Date", "August 28, 2026"],
+    [
+      "P",
+      "A six-month, funded residency for the artists who make Omarchy beautiful. The first two are HANCORE and OldJobobo."
+    ],
+    ["A", "Read more", "https://omarchy.org/news/2026/08/introducing-omarchy-air"],
+    ["H3", "Omarchy tops 100,000 downloads in a week"],
+    ["KV", "Date", "August 28, 2026"],
+    [
+      "P",
+      "A hundred thousand people installed Omarchy in seven days, and we moved nearly a petabyte doing it."
+    ],
+    ["A", "Read more", "https://omarchy.org/news/2026/08/100000-downloads-in-a-week"],
+    ["H3", "Introducing Omarchy Rangers"],
+    ["KV", "Date", "August 27, 2026"],
+    [
+      "P",
+      "The first Omarchy Rangers are here to help people find their way, and applications are open."
+    ],
+    ["A", "Read more", "https://omarchy.org/news/2026/08/introducing-the-omarchy-rangers"],
+    ["H3", "Omacom Foundation to be premier mise sponsor"],
+    ["KV", "Date", "August 25, 2026"],
+    [
+      "P",
+      "Third sponsorship out the door! The Omacom Foundation is becoming a premier sponsor of mise, and thereby of jdx, who has spent years building the tool that quietly makes managing different versions of Ruby, Node, Go a joy to manage, and..."
+    ],
+    [
+      "A",
+      "Read more",
+      "https://omarchy.org/news/2026/08/omacom-foundation-to-be-premier-mise-sponsor"
+    ],
+    ["H3", "Omarchy meetups around the world"],
+    ["KV", "Date", "August 24, 2026"],
+    [
+      "P",
+      "Find an Omarchy meetup near you or start one yourself and add it to the global calendar."
+    ],
+    ["A", "Read more", "https://omarchy.org/news/2026/08/omarchy-meetups-around-the-world"],
+    ["H3", "Omacom Foundation to be premier Quickshell sponsor"],
+    ["KV", "Date", "August 24, 2026"],
+    [
+      "P",
+      "More money in, more money out! Our second major sponsorship from the Omacom Foundation is going to outfoxxed for his superb work on Quickshell. It's only been part of the public release for a week, but it's already crystal clear that it..."
+    ],
+    [
+      "A",
+      "Read more",
+      "https://omarchy.org/news/2026/08/omacom-foundation-to-be-premier-quickshell-sponsor"
+    ],
+    ["H3", "Omacom Foundation funding hits $10m"],
+    ["KV", "Date", "August 24, 2026"],
+    [
+      "P",
+      "Drew Houston and Peter Steinberger join the Omacom Foundation as Founding Patrons, taking total funding to $10 million."
+    ],
+    ["A", "Read more", "https://omarchy.org/news/2026/08/omacom-foundation-funding-hits-10m"],
+    ["H3", "Omacom Foundation to be exclusive Hyprland sponsor"],
+    ["KV", "Date", "August 21, 2026"],
+    [
+      "P",
+      "What better way to start spending some of the treasure we just raised for the Omacom Foundation than on the most cracked Linux kid in Poland: Vaxry! As the creator of Hyprland, he's responsible for one of the three core technologies in..."
+    ],
+    [
+      "A",
+      "Read more",
+      "https://omarchy.org/news/2026/08/omacom-foundation-to-be-exclusive-hyprland-sponsor"
+    ],
+    ["H3", "Omacom Foundation launches with $8 million"],
+    ["KV", "Date", "August 21, 2026"],
+    [
+      "P",
+      "It's time to dream big. Omarchy Quattro has given people a chance to experience what the malleable computer of the future looks like, and they like it (a lot!). It now feels like a moral obligation to make this future more broadly..."
+    ],
+    [
+      "A",
+      "Read more",
+      "https://omarchy.org/news/2026/08/omacom-foundation-launches-with-8-million"
+    ],
+    ["H3", "The Omarchy Core Team"],
+    ["KV", "Date", "August 19, 2026"],
+    [
+      "P",
+      "Omarchy's explosive growth demands structured teams in response, and we're going to get started by incorporating The Omarchy Core Team. This group will share the responsibility of driving the direction of our distro, ensuring we continue..."
+    ],
+    ["A", "Read more", "https://omarchy.org/news/2026/09/the-omarchy-core-team"],
+    ["H3", "The first plugin competition"],
+    ["KV", "Date", "August 19, 2026"],
+    [
+      "P",
+      "The Omarchy Plugin Marketplace is already home to over 500 plugins and growing very fast. We have a million ideas for how we can improve this setup, including with automated agent-powered security reviews, but let's not have perfect be..."
+    ],
+    ["A", "Read more", "https://omarchy.org/news/2026/08/the-first-plugin-competition"]
+  ]
+}

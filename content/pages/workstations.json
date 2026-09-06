@@ -1,0 +1,22 @@
+{
+  "key": "WORKSTATIONS",
+  "title": "WORKSTATIONS",
+  "url": "https://omarchy.org/workstations/",
+  "nodes": [
+    ["H2", "#omarchy-workstations"],
+    [
+      "P",
+      "A community photo gallery of Omarchy setups, posted in the #omarchy-workstations channel on Discord. Eighty desks and counting: ultrawides, laptops on kitchen tables, tiling window managers in every theme the community has made."
+    ],
+    [
+      "P",
+      "The gallery is all pictures, so there is nothing here for a 40-column screen to print. Open the channel to see them."
+    ],
+    [
+      "A",
+      "#omarchy-workstations on Discord",
+      "https://discord.com/channels/1390012484194275541/1399365919293051010"
+    ],
+    ["A", "Browse the gallery", "https://omarchy.org/workstations/"]
+  ]
+}
