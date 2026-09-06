@@ -25,6 +25,10 @@ export function installTestHook(deps) {
       border: buffer.border,
       bg: buffer.bg,
       doc: machine.doc ? { key: machine.doc.key, off: machine.doc.off } : null,
+      /** How many clickable boxes the page just drew. */
+      hits: machine.hits.length,
+      /** How many rows the open document has, in total, at this width. */
+      docLines: machine.doc ? machine.doc.lines.length : 0,
     }),
 
     /** Jump straight to the menu. */

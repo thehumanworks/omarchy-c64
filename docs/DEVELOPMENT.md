@@ -134,6 +134,28 @@ npx playwright test --headed                  # watch it happen
 npx playwright show-report                    # after a failure
 ```
 
+What each suite proves:
+
+| Suite                | What it proves                                                                                                                                                                                 |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `boot.spec.js`       | WebGL starts, no errors, the loader goes away, the `.sr` fallback nav is intact                                                                                                                |
+| `fallback.spec.js`   | with WebGL denied the body fails over to the fourteen plain links                                                                                                                              |
+| `menu.spec.js`       | the tube's text: the menu, one doc, `HELP`, `POKE`, `SYS 64738`                                                                                                                                |
+| `pointer.spec.js`    | hardware hover labels, clicking a menu row, a third-party entry opening a tab                                                                                                                  |
+| `responsive.spec.js` | the grid reflows: narrow and tall on a phone, forty columns when wide                                                                                                                          |
+| `content.spec.js`    | one test per first-party page: it opens by number, shows its title and first heading, every `A` node becomes a hit box, `End`/`Home`/`Escape` behave                                           |
+| `navigation.spec.js` | Tab cycles the selection, a label and a three-letter prefix open the right doc, `HELP`/`ABOUT`/`LIST`/`DIR`/`RUN`, syntax errors, a shortcut's new tab, the power switch and the BRIGHT knob   |
+| `layout.spec.js`     | six viewports from a phone to 2560 wide: clean boot, the grid within its limits, no row wider than the tube, the menu box whole, the prompt and ticker on screen — plus the two tablet goldens |
+| `visual.spec.js`     | golden screenshots at desktop, phone and ultrawide                                                                                                                                             |
+
+`content.spec.js`, `navigation.spec.js` and `layout.spec.js` import
+`src/content/index.js` directly — it is a pure module — so their expectations
+are derived from `content/*.json` rather than copied out of it. Editing the copy
+does not mean editing the tests. The shared tables live in
+`test/e2e/helpers/content.js`, and `test/e2e/helpers/tube.js` converts an
+expected string into what the character ROM can actually draw (`asTube`), which
+is why `X86_64` is asserted as `X86·64`.
+
 Failures leave `playwright-report/` and `test-results/` behind, with the actual
 / expected / diff images for any visual assertion. CI uploads both directories
 as artifacts when a run fails.
