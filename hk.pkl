@@ -1,0 +1,116 @@
+amends "package://github.com/jdx/hk/releases/download/v1.58.1/hk@1.58.1#/Config.pkl"
+import "package://github.com/jdx/hk/releases/download/v1.58.1/hk@1.58.1#/Builtins.pkl"
+
+// Git hooks for omarchy-website. See docs/DEVELOPMENT.md.
+//
+// Everything here is also reachable by hand: `hk check` (read-only) and
+// `hk fix` (writes) run the same steps as `pre-commit`, so an agent can prove
+// a change without making a commit first.
+//
+// Tools (eslint/prettier via npm, actionlint/gitleaks/pkl via mise) are pinned
+// in mise.toml and package.json. Steps are scoped by `glob` so a commit that
+// only touches, say, a workflow file does not pay for the JS toolchain.
+
+// Where lintable first-party JavaScript lives. `app.js`, `pages*.js` and
+// `build.mjs` at the repo root are the pre-refactor monolith and are
+// deliberately NOT in this list: they are being replaced by `src/`.
+local const jsGlobs: List<String> = List(
+  "src/**/*.js",
+  "build/**/*.js",
+  "build/**/*.mjs",
+  "test/**/*.js",
+  "test/**/*.mjs",
+  "*.config.js",
+  "scripts/**/*.js",
+  "scripts/**/*.mjs"
+)
+
+// Anything that can change what the unit + build suites assert.
+local const testInputGlobs: List<String> = jsGlobs + List(
+  "content/**/*.json",
+  "site/**",
+  "package.json"
+)
+
+// prettier and eslint are devDependencies, not mise tools, so they are not on
+// PATH. `npx --no-install` resolves them from node_modules/.bin and fails loudly
+// if `npm ci` has not been run, rather than silently downloading a version that
+// is not the one package.json pins.
+local const npmBin: List<String> = List("npx", "--no-install")
+
+local linters = new Mapping<String, Step> {
+  // Formatting for every text file prettier understands. .prettierignore
+  // decides what is out of scope.
+  ["prettier"] = (Builtins.prettier) {
+    prefix = npmBin
+  }
+
+  // eslint with warnings treated as errors, matching `npm run lint`.
+  // The builtin does not pass --max-warnings, so both commands are overridden.
+  ["eslint"] = (Builtins.eslint) {
+    prefix = npmBin
+    glob = jsGlobs
+    check = new CommandSpec {
+      command = new Command { argv = List("eslint", "--max-warnings", "0", "{{files}}") }
+      effect = "read"
+    }
+    fix = new CommandSpec {
+      command = new Command { argv = List("eslint", "--fix", "--max-warnings", "0", "{{files}}") }
+      effect = "write"
+    }
+  }
+
+  // GitHub Actions workflow syntax + shellcheck of `run:` blocks.
+  ["actionlint"] = Builtins.actionlint
+
+  // hk.pkl itself must still evaluate.
+  ["pkl"] = Builtins.pkl
+
+  // Secret scan. Deliberately unscoped: a credential can land in any file.
+  ["gitleaks"] = Builtins.gitleaks
+
+  // The fast suite (node:test): pure-module units + dist invariants.
+  // Not batched and not file-scoped on the command line - npm runs the whole
+  // suite - but the glob keeps it off unrelated commits.
+  ["unit-tests"] {
+    glob = testInputGlobs
+    batch = false
+    check = "npm run test"
+  }
+}
+
+hooks {
+  // Runs on `git commit`. fix = true so prettier/eslint repair what they can
+  // and hk re-stages the result; stash = "git" hides unstaged work so the
+  // hooks judge exactly what is being committed.
+  ["pre-commit"] {
+    fix = true
+    stash = "git"
+    steps = linters
+  }
+
+  // Runs on `git push`. The expensive proof: a real bundle and the headless
+  // Chromium suite against it. e2e depends on build so dist/ exists first.
+  ["pre-push"] {
+    steps {
+      ["build"] {
+        check = "npm run build"
+      }
+      ["e2e"] {
+        depends = List("build")
+        check = "npm run test:e2e"
+      }
+    }
+  }
+
+  // `hk check` - read-only, safe anywhere, what CI approximates.
+  ["check"] {
+    steps = linters
+  }
+
+  // `hk fix` - the same steps, allowed to rewrite files.
+  ["fix"] {
+    fix = true
+    steps = linters
+  }
+}

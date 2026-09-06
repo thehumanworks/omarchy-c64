@@ -1,6 +1,24 @@
+# Tool versions and repo tasks. `mise install` gets every tool; `mise run setup`
+# makes a fresh clone ready to work in. See docs/DEVELOPMENT.md.
+
 [tools]
+node = "26"
 1password = "latest"
 fnox = "latest"
 hk = "latest"
 pkl = "latest"
+actionlint = "latest"
+gitleaks = "latest"
 wrangler = { version = "latest", allow_builds = ["esbuild", "sharp", "workerd"] }
+
+[tasks.setup]
+description = "Install npm deps, the Playwright browser and the git hooks"
+run = "npm ci && npx playwright install chromium && hk install"
+
+[tasks.check]
+description = "Full proof: lint, format, unit + build tests, bundle, e2e"
+run = "npm run check"
+
+[tasks.deploy]
+description = "Manual production deploy to Cloudflare Pages (CI does this on push to main)"
+run = "fnox run -- npx wrangler pages deploy dist --project-name omarchy-website"
