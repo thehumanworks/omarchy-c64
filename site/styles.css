@@ -32,6 +32,16 @@ body.ready #gl {
   opacity: 1;
 }
 
+/* Holding the monitor hardware must not start iOS selection or its callout. */
+#gl,
+#cursor,
+#monitor-controls,
+#monitor-controls * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
 /* The artwork is in the WebGL bezel; these are its native hit targets. */
 #monitor-controls {
   visibility: hidden;
