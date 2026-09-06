@@ -10,6 +10,9 @@ and ship it without a human in the loop.
 
 ## Start here
 
+Read `README.md` for the project overview and `CONTRIBUTING.md` for the shared
+human/agent contribution and evidence standards.
+
 1. `docs/ARCHITECTURE.md` — the module map, the layer rules, the key objects.
    Read it in full before editing anything under `src/`.
 2. `docs/DEVELOPMENT.md` — commands, hooks, and the proof standard.
@@ -75,8 +78,11 @@ wrong, fix `hk.pkl`.
 4. If the picture is supposed to change, update the goldens with
    `npm run test:e2e:update`, look at the new PNGs, and say why in the commit.
 5. Commit with a message that says what changed and why. One concern per
-   commit. Push a branch and open a pull request; CI runs the same checks and
-   posts a preview URL. Merging to `main` deploys to production.
+   commit. Normally push a branch and open a pull request. CI selects affected
+   checks conservatively and posts a preview when it builds the site; shared
+   or unknown inputs receive the full gate. Main pushes verify against a
+   proven baseline and deploy site changes. See `docs/CI.md`; explicit user
+   instructions may authorize direct main pushes.
 
 Do not report a change as done without having run the proof. "Should work" is
 not a result; paste the command output.
@@ -140,8 +146,9 @@ page as skipped instead of pretending it succeeded.
 
 ## Deployment and secrets
 
-Merging to `main` runs `.github/workflows/deploy.yml`: the full suite, then
-`wrangler pages deploy` to the Cloudflare Pages project `omarchy-website`
+Updating `main` runs `.github/workflows/deploy.yml`: affected checks against a
+verified baseline, or the full suite when required, then `wrangler pages deploy`
+for a built site to the Cloudflare Pages project `omarchy-website`
 (production domain omarchy.thehuman.sh; c63.omarchy.org once DNS is added on
 DHH's side, see `docs/DEPLOYMENT.md`).
 

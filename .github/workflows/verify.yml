@@ -1,0 +1,94 @@
+# PR verification, also callable in full mode for branch dispatch.
+name: Verify components
+
+on:
+  workflow_call:
+    inputs:
+      full:
+        type: boolean
+        default: true
+      base:
+        type: string
+        default: ''
+    outputs:
+      built:
+        value: ${{ jobs.verify.outputs.built }}
+      freshness:
+        value: ${{ jobs.verify.outputs.freshness }}
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    outputs:
+      built: ${{ steps.plan.outputs.build }}
+      freshness: ${{ steps.plan.outputs.freshness }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Install tools from mise.toml
+        uses: jdx/mise-action@v2
+        with:
+          install_args: node
+          cache: true
+
+      - name: Select affected checks
+        id: plan
+        env:
+          FULL: ${{ inputs.full }}
+          BASE: ${{ inputs.base }}
+        run: |
+          if [ "$FULL" = true ]; then
+            npm run ci:plan -- --full
+          else
+            npm run ci:plan -- --base "$BASE"
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium for Playwright
+        if: steps.plan.outputs.browser == 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Run selected checks
+        env:
+          FULL: ${{ inputs.full }}
+          BASE: ${{ inputs.base }}
+        run: |
+          if [ "$FULL" = true ]; then
+            npm run check
+          else
+            npm run check:changed -- --base "$BASE"
+          fi
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload checked page
+        if: steps.plan.outputs.build == 'true'
+        uses: actions/upload-artifact@v5
+        with:
+          name: dist
+          path: dist/index.html
+          retention-days: 7
+          if-no-files-found: error
