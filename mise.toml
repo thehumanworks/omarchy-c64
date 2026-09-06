@@ -1,4 +1,6 @@
 [tools]
 1password = "latest"
 fnox = "latest"
+hk = "latest"
+pkl = "latest"
 wrangler = { version = "latest", allow_builds = ["esbuild", "sharp", "workerd"] }
