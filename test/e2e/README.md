@@ -20,14 +20,19 @@ Report: `playwright-report/` (`--reporter=html`, never auto-opened).
 
 ## Suites
 
-| file                 | what it proves                                                  |
-| -------------------- | --------------------------------------------------------------- |
-| `boot.spec.js`       | WebGL starts, no errors, loader gone, `.sr` fallback nav intact |
-| `fallback.spec.js`   | with WebGL denied the body fails over to the 14 plain links     |
-| `visual.spec.js`     | golden screenshots at desktop / phone / ultrawide               |
-| `menu.spec.js`       | the tube's text: menu, docs, `HELP`, `POKE`, `SYS 64738`        |
-| `pointer.spec.js`    | hardware hover labels, clicking a menu row, third-party new tab |
-| `responsive.spec.js` | the grid reflows: narrow+tall on a phone, 40 columns when wide  |
+| file                 | what it proves                                                                               |
+| -------------------- | -------------------------------------------------------------------------------------------- |
+| `boot.spec.js`       | WebGL starts, no errors, loader gone, `.sr` fallback nav intact                              |
+| `fallback.spec.js`   | with WebGL denied the body fails over to the 14 plain links                                  |
+| `visual.spec.js`     | golden screenshots at desktop / phone / ultrawide                                            |
+| `menu.spec.js`       | the tube's text: menu, docs, `HELP`, `POKE`, `SYS 64738`                                     |
+| `pointer.spec.js`    | hardware hover labels, clicking a menu row, third-party new tab                              |
+| `responsive.spec.js` | the grid reflows: narrow+tall on a phone, 40 columns when wide                               |
+| `content.spec.js`    | every first-party page opens, shows its title and first heading, scrolls, links are hittable |
+| `navigation.spec.js` | Tab cycling, names and prefixes, HELP/ABOUT/LIST/DIR, shortcuts, power switch, knob drag     |
+| `layout.spec.js`     | six viewports: grid bounds, rows fit, menu box intact; iPad goldens                          |
+| `touch.spec.js`      | the on-screen keyboard: opens on tap, no layout shift, fits, types; swipe and wheel scroll   |
+| `cursor.spec.js`     | the retro pointer: shows over the canvas, hand over links, hides on leave, touch echo        |
 
 ## The test hook
 
