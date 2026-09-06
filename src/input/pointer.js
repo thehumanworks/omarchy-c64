@@ -40,11 +40,6 @@ function trackHover(p, target) {
   p.repaint();
 }
 
-function promptAt(p, x, y) {
-  const cell = p.cellAt(x, y);
-  return cell && cell.row >= p.buffer.rows - 3 && cell.row <= p.buffer.rows - 2;
-}
-
 function onMove(p, e) {
   if (e.pointerType === 'touch') {
     const hit = p.pick(e.clientX, e.clientY);
@@ -62,9 +57,7 @@ function onMove(p, e) {
   const hover = p.pick(e.clientX, e.clientY);
   const target = hover === 'screen' ? hitAt(p, e.clientX, e.clientY) : null;
   trackHover(p, target);
-  const l = promptAt(p, e.clientX, e.clientY)
-    ? p.content.strings.chrome.ready
-    : label(p, target, hover);
+  const l = label(p, target, hover);
   p.canvas.dataset.pointer = target || l ? 'link' : '';
   p.setHint(l);
 }
@@ -108,8 +101,7 @@ function onDown(p, e) {
  * whether it was a tap or a scroll. `scroll.js` owns the drag state machine.
  */
 function onTouchDown(p, e, hit) {
-  // Suppress the compatibility mousedown that would blur native input just
-  // focused on pointerup. Pointer events still deliver the tap/drag normally.
+  // Suppress compatibility mouse events: touch acts once, on release.
   e.preventDefault();
   if (hit === 'power') return p.togglePower();
   if (DRAGGABLE.includes(hit)) return startDrag(p, e, hit);
@@ -122,7 +114,6 @@ function onTouchUp(p) {
   const tap = p.tap;
   p.tap = null;
   if (!tap || p.scroll.consumesTap()) return;
-  if (promptAt(p, tap.x, tap.y)) p.openKeyboard();
   onScreenDown(p, { clientX: tap.x, clientY: tap.y });
 }
 
@@ -148,7 +139,7 @@ function onLeave(p) {
 /**
  * `deps` is `{ canvas, camera, monitor, screenMesh, crt, buffer, painter,
  * machine, content, snd, nav, boot, run, repaint, setHint, togglePower, wake,
- * scroll, openKeyboard }`.
+ * scroll }`.
  */
 export function createPointer(deps) {
   const p = {
@@ -159,7 +150,6 @@ export function createPointer(deps) {
     drag: null,
     tap: null,
     scroll: { start() {}, consumesTap: () => false },
-    openKeyboard() {},
   };
   const { canvas } = deps;
   canvas.addEventListener('pointermove', (e) => onMove(p, e));
@@ -171,7 +161,6 @@ export function createPointer(deps) {
     p.drag = null;
   });
   applyKnobs(p);
-  /* `attach` lets main.js hand back the two objects that are built after this
-     one: the scroll state machine (it needs `cellAt`) and the touch keyboard. */
+  /* `attach` wires the scroll state machine after it receives `cellAt`. */
   return { mouse: p.mouse, cellAt: p.cellAt, attach: (extra) => Object.assign(p, extra) };
 }

@@ -2,7 +2,7 @@
 //
 // The tube and the hardware live on a mesh, so their screen coordinates depend on
 // the camera, the viewport and the case layout — there is no DOM box to click.
-// What the page does give us is #hint, which names whatever the pointer is over.
+// The canvas exposes data-hint metadata naming whatever the pointer is over.
 // So: sweep a region, watch the hint, and stop where it names the thing we want.
 //
 // The sweep runs *inside* the page. Real `page.mouse.move` calls are throttled to
@@ -12,9 +12,9 @@
 // mouse move, so the click that follows is genuine user input.
 /* Callbacks in page.evaluate/addInitScript run in the browser, not in Node. */
 
-/** The current #hint text ('' when the pill is off). */
+/** The current pointer label, without any rendered hover overlay. */
 export function hintText(page) {
-  return page.evaluate(() => document.getElementById('hint').textContent.trim());
+  return page.evaluate(() => document.getElementById('gl').dataset.hint.trim());
 }
 
 /** Coarse sweep, in-page: first grid point whose hint equals `label`, or null. */
@@ -22,12 +22,11 @@ function sweep(page, region, label) {
   return page.evaluate(
     (o) => {
       const canvas = document.getElementById('gl');
-      const hint = document.getElementById('hint');
       for (let y = o.y0; y <= o.y1; y += o.step) {
         for (let x = o.x0; x <= o.x1; x += o.step) {
           const ev = new PointerEvent('pointermove', { clientX: x, clientY: y, bubbles: true });
           canvas.dispatchEvent(ev);
-          if (hint.textContent.trim() === o.label) return { x, y };
+          if (canvas.dataset.hint.trim() === o.label) return { x, y };
         }
       }
       return null;

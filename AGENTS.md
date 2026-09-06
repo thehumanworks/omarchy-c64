@@ -98,16 +98,13 @@ add its help line to `content/strings.json`, add a case to
 `content/pages/<LABEL>.json` open on the tube; anything else opens a tab.
 
 **Change mobile input.** The bezel rocker and Enter button in
-`src/input/monitor-controls.js` handle normal touch navigation without a keyboard.
+`src/input/monitor-controls.js` handle touch navigation without a keyboard.
 Their artwork and projection are documented in `docs/MOBILE-CONTROLS.md`.
-For optional typing, tap READY to use the iPhone/iPad system keyboard through the real
-`#command` input in `site/index.html` and `src/input/native-keyboard.js`.
-Never implement a custom keyboard or restore the KBD toggle. Preserve native
-selection, paste and composition. `src/input/native-viewport.js` keeps the
-canvas geometry stable and the command visible above the keyboard. Prove it
-with `npx playwright test test/e2e/touch.spec.js` and inspect the
-`phone-native-input` golden. Headless emulation cannot show the OS keyboard:
-report physical-device verification separately.
+Do not add a custom keyboard, HTML command input, KBD toggle or floating hover
+badge. Commands and feedback belong on the CRT; physical keyboards still
+work. Prove changes with `npx playwright test test/e2e/monitor-controls.spec.js
+test/e2e/touch.spec.js` and inspect the `phone-monitor-controls` and
+`phone-no-badges` goldens.
 
 **Tweak the CRT look.** `src/scene/shaders/*.js` hold the GLSL, `src/scene/crt.js`
 the uniforms and defaults, `src/scene/post.js` the bloom and final grade. Every

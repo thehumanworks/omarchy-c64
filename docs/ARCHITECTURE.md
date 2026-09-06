@@ -64,10 +64,8 @@ runtime/   loop.js (the animate tick), favicon.js, test-hook.js
    ↓
 input/     pick.js (raycast the case and the tube), pointer.js (knobs, hover,
            click and tap on tube text), keyboard.js (one `press()` every key
-           goes through), native-keyboard.js (native text editing),
-           native-viewport.js (stable canvas and visible command field),
-           monitor-controls.js (bezel rocker and Enter), scroll.js (wheel and finger scrolling of
-           a document), hint.js, cursor.js (the pixel-art pointer sprite that
+           goes through), monitor-controls.js (bezel rocker and Enter), scroll.js (wheel and finger scrolling of
+           a document), hint.js (pointer-label metadata only), cursor.js (the pixel-art pointer sprite that
            stands in for the OS cursor over the canvas; `pointer.js` tells it
            which shape to use through `canvas.dataset.pointer`)
    ↓
@@ -113,16 +111,9 @@ content/   index.js loads and normalises content/*.json (uppercase, ASCII quotes
   `solveCase`, `bandAt`, `mapX`, `mapY`) and is unit-tested; the three.js
   builder `buildCaseGeometry` lives next door in `scene/case-geometry.js` so
   `case.js` stays importable in Node.
-- **`createKeyboard`** (`input/keyboard.js`): returns `{ press, setInput }`.
-  Physical keydown and native mobile command submission share `press`.
-  Native editing uses `setInput` after browser input/composition events, so
-  selection, deletion and paste retain their normal browser semantics.
-- **`createNativeKeyboard`** (`input/native-keyboard.js`): focuses the real
-  `#command` text input synchronously on a READY prompt tap. It never draws keys
-  or auto-opens on load. Blank tube taps, links and swipes do not summon the keyboard. Return
-  submits once and dismisses input; Escape returns to the menu. Native input
-  remains selectable and visible above the system keyboard; repaint sync
-  does not overwrite an active composition.
+- **`createKeyboard`** (`input/keyboard.js`): returns `{ press }`.
+  Physical keydown and monitor hardware share the same command handler.
+  Command text is drawn on the CRT; there is no HTML input or mobile keyboard.
 - **`createMonitorControls`** (`input/monitor-controls.js`): touch devices get
   an imagegen-authored rocker and Enter button on the lower bezel. Native DOM
   buttons project onto their photographed positions using `control-bounds.js`,
@@ -131,15 +122,9 @@ content/   index.js loads and normalises content/*.json (uppercase, ASCII quotes
   Cancellation/blur stops repeat. The render loop syncs their bounds even
   during boot or while powered off. Enter opens the selection or returns from
   a document; the rocker uses the existing arrow-key navigation and scrolling.
-  The mobile hover badge is hidden. Desktop keeps the original photographed
+  There are no floating hover badges on any device. Desktop keeps the original photographed
   brightness/contrast/volume controls. See [MOBILE-CONTROLS.md](MOBILE-CONTROLS.md)
   for the generated asset, prompt, mapping and visual verification.
-- **`createNativeViewport`** (`input/native-viewport.js`): pins canvas dimensions
-  during typing. Visual viewport resize/scroll only anchors the monitor to
-  the visible top and the input above the keyboard; the scene and text grid
-  do not reflow. Width changes (rotation) release the lock and relayout.
-  Scene layout and ray picking use the canvas dimensions/bounds, so a
-  keyboard-related window resize cannot distort rendering or hit targets.
 - **`createCursor`** (`input/cursor.js`): one compact sprite for both pointer
   types. A touch device starts with it visible; touching/dragging moves it to
   the finger position and release/cancel leaves it there. It is clamped to

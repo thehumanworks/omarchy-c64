@@ -22,7 +22,7 @@ Report: `playwright-report/` (`--reporter=html`, never auto-opened).
 
 | file                       | what it proves                                                                                    |
 | -------------------------- | ------------------------------------------------------------------------------------------------- |
-| `boot.spec.js`             | WebGL starts, no errors, loader gone, `.sr` fallback nav intact                                   |
+| `boot.spec.js`             | WebGL starts, no errors, loader gone, no floating badge, `.sr` fallback nav intact                |
 | `fallback.spec.js`         | with WebGL denied the body fails over to the 14 plain links                                       |
 | `visual.spec.js`           | golden screenshots at desktop / phone / ultrawide                                                 |
 | `menu.spec.js`             | the tube's text: menu, docs, `HELP`, `POKE`, `SYS 64738`                                          |
@@ -31,7 +31,7 @@ Report: `playwright-report/` (`--reporter=html`, never auto-opened).
 | `content.spec.js`          | every first-party page opens, shows its title and first heading, scrolls, links are hittable      |
 | `navigation.spec.js`       | Tab cycling, names and prefixes, HELP/ABOUT/LIST/DIR, shortcuts, power switch, knob drag          |
 | `layout.spec.js`           | six viewports: grid bounds, rows fit, menu box intact; iPad goldens                               |
-| `touch.spec.js`            | native editing, viewport occlusion, stable geometry, link taps and swipe/wheel scroll             |
+| `touch.spec.js`            | no editable field or badges, stable touch geometry, link taps and swipe/wheel scroll              |
 | `monitor-controls.spec.js` | bezel rocker and Enter: navigation, repeat/cancel, boot, landscape and iPad hit targets           |
 | `cursor.spec.js`           | the retro pointer: shows over the canvas, hand over links, hides on mouse leave, persistent touch |
 
@@ -87,19 +87,16 @@ you just want to eyeball a change:
 node test/e2e/helpers/shots.mjs dist/index.html /tmp/shots
 ```
 
-## Native mobile keyboard verification
+## Mobile hardware verification
 
-Headless Chromium does not draw an iOS keyboard. `touch.spec.js` exercises real
-input events (including deletion, selection replacement and composition) and
-simulates visual viewport shrink/pan in phone portrait, landscape and iPad
-sizes. The `phone-native-input` golden shows the editable command field with
-simulated keyboard occlusion; it is not a screenshot of an OS keyboard.
+Touch uses the photographed rocker and Enter button, with no native/custom
+keyboard or HTML input field. `monitor-controls.spec.js` covers selection,
+scrolling, Enter, holding/cancelling, boot and landscape/iPad target alignment.
+`touch.spec.js` proves there are no floating badges, that physical command text
+stays on the CRT, and that taps leave the layout stable. `phone-no-badges` is
+the regression golden for the former floating HELP input field.
 
-On an iPhone/iPad in Safari, tap READY, type `HELP`, edit the text,
-and submit with Go/Return. Confirm the native keyboard appears, the monitor
-stays anchored, and the command remains visible above the keyboard. Dismiss
-using the system control, reopen, rotate, and repeat. Blank tube taps, link taps and document
-swipes should not raise the keyboard. Use the bezel rocker to select or scroll,
-and Enter to open the selection or return to the menu. Holding the rocker
-repeats; lifting or cancelling stops it. No floating mobile hover badge appears. The smaller cursor must remain visible
-after lifting the finger and move with the next drag.
+On an iPhone/iPad, use the rocker to select/scroll and Enter to open the entry
+or return to the menu. Holding repeats; lifting or cancelling stops it. Taps
+and document swipes must never raise a keyboard or floating badge. The cursor
+stays visible after release and follows the next touch.

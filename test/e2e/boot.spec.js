@@ -30,11 +30,11 @@ test('boots into WebGL without page or console errors', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-test('the loader is removed and the hint pill starts empty', async ({ page }) => {
+test('the loader is removed and no floating badge exists', async ({ page }) => {
   await openSite(page);
   await expect(page.locator('#loader')).toHaveCount(0);
-  await expect(page.locator('#hint')).toHaveText('');
-  await expect(page.locator('#hint')).not.toHaveClass(/\bon\b/);
+  await expect(page.locator('#gl')).toHaveAttribute('data-hint', '');
+  await expect(page.locator('#hint')).toHaveCount(0);
 });
 
 test('the canvas covers the whole viewport', async ({ page }) => {

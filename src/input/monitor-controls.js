@@ -27,7 +27,7 @@ function bindEnter(button, press) {
   });
 }
 
-export function createMonitorControls({ root, keys, wake, input, bounds }) {
+export function createMonitorControls({ root, keys, wake, bounds }) {
   const nav = root.querySelector('#monitor-nav');
   const enter = root.querySelector('#monitor-enter');
   let pointer = null;
@@ -41,7 +41,6 @@ export function createMonitorControls({ root, keys, wake, input, bounds }) {
   }
   function press(key) {
     wake();
-    input.blur();
     keys.press(key);
   }
   function repeat() {

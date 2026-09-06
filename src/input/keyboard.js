@@ -116,8 +116,8 @@ function preflight(k, e) {
 
 /**
  * `deps` is `{ machine, content, snd, nav, boot, run, wake, togglePower,
- * buffer }`. Returns `{ press, setInput }`: the one routine every key goes through,
- * whether it came from a physical keyboard or a native mobile input.
+ * buffer }`. Returns `{ press }`: the one routine every key goes through,
+ * whether it came from a physical keyboard or the monitor controls.
  */
 export function createKeyboard(deps) {
   /** Feed a key name through the same preflight + route a real keydown takes. */
@@ -128,8 +128,6 @@ export function createKeyboard(deps) {
   }
 
   window.addEventListener('keydown', (e) => {
-    if (e.target instanceof HTMLElement && e.target.matches('input, textarea, [contenteditable]'))
-      return;
     if (e.target instanceof HTMLButtonElement && ['Enter', ' '].includes(e.key)) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     deps.wake();
@@ -137,15 +135,5 @@ export function createKeyboard(deps) {
     if (route(deps, e)) e.preventDefault();
   });
 
-  function setInput(value) {
-    const e = { key: value.at(-1) || 'Backspace', preventDefault() {} };
-    if (preflight(deps, e)) return;
-    deps.machine.input = value
-      .replace(/[^ -~]/g, '')
-      .toUpperCase()
-      .slice(0, 30);
-    deps.snd.key();
-  }
-
-  return { press, setInput };
+  return { press };
 }

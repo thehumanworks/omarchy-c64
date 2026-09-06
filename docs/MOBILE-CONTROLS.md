@@ -6,9 +6,10 @@ to another direction. In documents the rocker scrolls. Enter opens the selected
 menu entry, and returns from a document to the menu. The hardware also works
 while booting or powered off through the existing keyboard preflight.
 
-Ordinary tube taps and links do not open a keyboard. READY still offers
-optional native typing; there is no custom keyboard, KBD toggle, or mobile
-hover badge. Desktop retains its original brightness/contrast/volume knobs.
+Mobile navigation never opens a keyboard. There is no editable HTML input,
+custom keyboard, KBD toggle or floating hover badge on any device. Commands
+from a physical keyboard remain supported and appear only on the CRT.
+Desktop retains its original brightness/contrast/volume knobs.
 
 ## Artwork and mapping
 
@@ -35,8 +36,8 @@ hover badge. Desktop retains its original brightness/contrast/volume knobs.
 
 Run `npm run check`. `monitor-controls.spec.js` exercises navigation without
 native input, repeat/cancellation, boot and touch target alignment.
-`touch.spec.js` covers optional native input and stable keyboard geometry.
+`touch.spec.js` proves command text stays on the CRT without overlays, verifies
+stable layouts on portrait/landscape/iPad, and covers link taps and scrolling.
 Inspect `phone-monitor-controls.png`, `phone-cursor.png` and
-`phone-native-input.png` after changing either the asset or its mapping.
-Headless browsers do not show an actual iPhone/iPad system keyboard; report
-physical-device testing separately from viewport simulation.
+`phone-no-badges.png` after changing either the asset or its mapping.
+Browser emulation does not replace physical iPhone/iPad interaction testing.

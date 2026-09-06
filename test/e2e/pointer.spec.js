@@ -16,8 +16,8 @@ test('hovering the power switch labels it POWER', async ({ page }) => {
   await atMenu(page);
   const hit = await probeHint(page, switchRegion(VIEWPORT), 'POWER');
   expect(hit, 'no point in the lower-right of the case reported POWER').not.toBeNull();
-  await expect(page.locator('#hint')).toHaveText('POWER');
-  await expect(page.locator('#hint')).toHaveClass(/\bon\b/);
+  await expect(page.locator('#gl')).toHaveAttribute('data-hint', 'POWER');
+  await expect(page.locator('#hint')).toHaveCount(0);
 });
 
 test('clicking the MANUAL row on the tube opens the doc', async ({ page }) => {

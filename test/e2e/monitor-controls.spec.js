@@ -34,8 +34,8 @@ test.describe('mobile monitor hardware', () => {
     await page.locator('#monitor-enter').tap();
     await expect.poll(async () => (await state(page)).page).toBe('menu');
     await page.touchscreen.tap(195, 185);
-    await expect(page.locator('#command')).not.toBeFocused();
-    await expect(page.locator('#hint')).toBeHidden();
+    await expect(page.locator('input, textarea, #hint')).toHaveCount(0);
+    await expect(page.locator('#hint')).toHaveCount(0);
     await expect(page.locator('#kbd, #kbd-toggle')).toHaveCount(0);
     const nav = await page.locator('#monitor-nav').boundingBox();
     const enter = await page.locator('#monitor-enter').boundingBox();
@@ -52,7 +52,7 @@ test.describe('mobile monitor hardware', () => {
     await openSite(page, { viewport: PHONE });
     await page.locator('#monitor-enter').tap();
     await expect.poll(async () => (await state(page)).mode).toBe('app');
-    await expect(page.locator('#command')).not.toBeFocused();
+    await expect(page.locator('input, textarea, #hint')).toHaveCount(0);
   });
 
   test('holding the rocker repeats and cancellation stops it', async ({ page }) => {
@@ -98,7 +98,7 @@ for (const [name, viewport] of Object.entries({
       await tapDirection(page, false);
       await page.locator('#monitor-enter').tap();
       await expect.poll(async () => (await state(page)).doc?.key).toBe('MANUAL');
-      await expect(page.locator('#command')).not.toBeFocused();
+      await expect(page.locator('input, textarea, #hint')).toHaveCount(0);
     });
   });
 }

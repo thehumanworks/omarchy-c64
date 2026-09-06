@@ -31,8 +31,6 @@ import { createHint } from './input/hint.js';
 import { createCursor } from './input/cursor.js';
 import { createPointer } from './input/pointer.js';
 import { createKeyboard } from './input/keyboard.js';
-import { createNativeKeyboard } from './input/native-keyboard.js';
-import { createNativeViewport } from './input/native-viewport.js';
 import { createMonitorControls } from './input/monitor-controls.js';
 import { createScroll } from './input/scroll.js';
 import { createLoop } from './runtime/loop.js';
@@ -47,12 +45,9 @@ const buffer = new TextBuffer(40, 25);
 const painter = new Painter(buffer, rom);
 const machine = createMachine();
 machine.logo = makeLogo(2);
-/** Keep the native command field in sync with the BASIC prompt. */
-let kbd = null;
 let controls = null;
 const repaint = () => {
   repaintPage(buffer, machine, content);
-  if (kbd) kbd.sync();
 };
 
 /* --------------------------------------------------------------- 3d scene */
@@ -110,8 +105,10 @@ const { layout, view } = createLayout({
   relayoutDoc: () => nav.relayoutDoc(),
 });
 
+window.addEventListener('resize', layout);
+
 /* ------------------------------------------------------------ interaction */
-const setHint = createHint(document.getElementById('hint'));
+const setHint = createHint(canvas);
 createCursor({ canvas, el: document.getElementById('cursor') });
 
 function wake() {
@@ -155,9 +152,6 @@ const keys = createKeyboard({
   buffer,
 });
 
-const input = document.getElementById('command');
-const viewport = createNativeViewport({ canvas, input, layout });
-kbd = createNativeKeyboard({ input, keys, machine, wake, viewport });
 if (touch) {
   const root = document.getElementById('monitor-controls');
   root.hidden = false;
@@ -165,13 +159,11 @@ if (touch) {
     root,
     keys,
     wake,
-    input,
     bounds: () => controlBounds({ camera, rig, canvas, view }),
   });
 }
 pointer.attach({
   scroll: createScroll({ canvas, cellAt: pointer.cellAt, buffer, machine, snd: Snd }),
-  openKeyboard: () => kbd.open(),
 });
 
 installTestHook({ buffer, machine, boot });
