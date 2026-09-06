@@ -95,7 +95,7 @@ test('the guard rejects an empty or collapsed page', () => {
 
 test('a failing source leaves the committed file untouched and is reported', async () => {
   await withTempDir(async (dir) => {
-    const file = join(dir, 'content/pages/DEMO.json');
+    const file = join(dir, 'content/pages/demo.json');
     await writeJson(file, PAGE);
     const original = await readFile(file, 'utf8');
 
@@ -133,7 +133,7 @@ test('a failed page makes the whole run exit non-zero', () => {
 
 test('a static source is reported as skipped, not as changed', async () => {
   await withTempDir(async (dir) => {
-    const file = join(dir, 'content/pages/DEMO.json');
+    const file = join(dir, 'content/pages/demo.json');
     await writeJson(file, PAGE);
     const result = await syncPage(
       'DEMO',
@@ -148,7 +148,7 @@ test('a static source is reported as skipped, not as changed', async () => {
 
 test('a static source without a reason is refused', async () => {
   await withTempDir(async (dir) => {
-    await writeJson(join(dir, 'content/pages/DEMO.json'), PAGE);
+    await writeJson(join(dir, 'content/pages/demo.json'), PAGE);
     const result = await syncPage(
       'DEMO',
       { adapter: 'static', url: 'https://omarchy.org/demo/' },
