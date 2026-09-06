@@ -114,7 +114,15 @@ function hide(s) {
   s.canvas.style.cursor = '';
 }
 
+/**
+ * Headless Chromium (CI on Linux) synthesises a mouse event at (0,0) when the
+ * page loads. No one parks a real pointer on that exact pixel, so it is
+ * ignored: the sprite must not light up before a person moves the mouse.
+ */
+const phantom = (e) => e.pointerType !== 'touch' && e.clientX === 0 && e.clientY === 0;
+
 function onMove(s, e) {
+  if (phantom(e)) return;
   s.x = e.clientX;
   s.y = e.clientY;
   // Place it at once the first time, so it never appears at its last position.
@@ -138,7 +146,7 @@ export function createCursor({ canvas, el }) {
     target.addEventListener(type, fn);
     off.push(() => target.removeEventListener(type, fn));
   };
-  on(canvas, 'pointerenter', (e) => onMove(s, e));
+  // No pointerenter: a real entry is always followed by a pointermove.
   on(canvas, 'pointermove', (e) => onMove(s, e));
   on(canvas, 'pointerdown', (e) => {
     onMove(s, e);
