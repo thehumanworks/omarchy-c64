@@ -30,7 +30,7 @@ jobs:
   deploy:
     name: Verify and deploy
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 45
     environment:
       name: production
       url: ${{ steps.deploy.outputs.url }}
