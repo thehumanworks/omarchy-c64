@@ -38,9 +38,25 @@ Every command is an npm script. Use them; do not invent ad-hoc invocations.
 | `npm run test:build`   | `node --test test/build/**`                          | `dist/index.html` holds its invariants: one file, everything inlined, no external loads.                              |
 | `npm run test`         | unit + build                                         | The fast suite. Seconds, no browser.                                                                                  |
 | `npm run test:e2e`     | `playwright test` against `dist/index.html`          | The real page boots in headless Chromium with software WebGL, and the tube shows what it should. Needs a build first. |
+| `npm run sync`         | Pulls page copy from `content/sources.json`          | `content/pages/*.json` match omarchy.org today. See docs/CONTENT.md.                                                  |
+| `npm run sync:check`   | The same, dry run; exits 1 if anything would change  | The committed content is in step with the sources.                                                                    |
 | `npm run check`        | lint → format:check → test → build → test:e2e        | Everything. This is the gate.                                                                                         |
 
 `mise run check` is a thin alias for `npm run check`.
+
+### Sync flags
+
+`npm run sync` takes flags after `--`:
+
+| Flag              | Effect                                                            |
+| ----------------- | ----------------------------------------------------------------- |
+| `-n`, `--dry-run` | report what would change, write nothing, exit 1 if anything would |
+| `--only KEY`      | sync only these pages (comma-separated, repeatable)               |
+| `--menu`          | also refresh `content/menu.json`'s URLs                           |
+| `-h`, `--help`    | usage                                                             |
+
+Set `GITHUB_TOKEN` to lift the GitHub API rate limit when syncing MANUAL. The
+sync never needs a secret otherwise: every source is public.
 
 ## Git hooks
 

@@ -100,9 +100,25 @@ change here needs the visual proof above.
 
 **Update three.js.** See `vendor/README.md`.
 
-**Update news or meetups.** `content/pages/news.json` / `meetups.json`. The
-source site is omarchy.org; keep the tuples in the same order the site lists
-them.
+**Update news or meetups** (or any other synced page). Run `npm run sync`,
+read the diff summary it prints, run `npm run check`, commit `content/`. Do not
+hand-edit `content/pages/*.json` unless the source is down and the change
+cannot wait, because the next sync overwrites it. `content/sources.json` says
+where each page comes from and `docs/CONTENT-SOURCES.md` says why.
+
+**A page's copy looks wrong or stale.** Run `npm run sync -- --dry-run --only
+<KEY>` first. If the sync reproduces the wrong text, the upstream page is
+wrong. If the sync fails or drops content, the selectors in
+`content/sources.json` need updating - not the JSON.
+
+**A source moved.** Change one line in `content/sources.json`: usually `url`,
+sometimes `adapter`. Add an adapter under `scripts/sync/adapters/` only for a
+kind of source we do not already handle. Record what you found in
+`docs/CONTENT-SOURCES.md`.
+
+**A page cannot be sourced.** Set `"adapter": "static"` with a `"reason"` in
+`content/sources.json`. The sync keeps the committed snapshot and reports the
+page as skipped instead of pretending it succeeded.
 
 ## Deployment and secrets
 

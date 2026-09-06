@@ -80,6 +80,105 @@ page never opens or ends on one.
 
 To change wording only, edit the JSON and rebuild. Nothing else moves.
 
+## Where the content comes from
+
+The page files are not hand-maintained snapshots. `content/sources.json` says
+where each one is pulled from, and `npm run sync` pulls it:
+
+```json
+"NEWS": {
+  "adapter": "feed",
+  "url": "https://omarchy.org/news/rss.xml",
+  "page": "https://omarchy.org/news/",
+  "limit": 12,
+  "minNodes": 10
+}
+```
+
+`adapter` names a file in `scripts/sync/adapters/`; every other field is that
+adapter's configuration. `url` is where the bytes come from and `page` is what
+the tube links to, which is why the NEWS entry can read an RSS feed while still
+matching the menu's `/news/` URL. The adapters today:
+
+| Adapter           | For                                                  | Used by                                 |
+| ----------------- | ---------------------------------------------------- | --------------------------------------- |
+| `github-markdown` | markdown chapters in a GitHub repo                   | MANUAL                                  |
+| `feed`            | RSS 2.0 or Atom                                      | NEWS                                    |
+| `luma`            | the Luma calendar JSON API                           | MEETUPS                                 |
+| `ics`             | an iCalendar feed (the meetups fallback)             | —                                       |
+| `html`            | a rendered page, via CSS selectors                   | AIR, SECURITY, TEAMS, PATRONS, SPONSORS |
+| `static`          | "no source worth syncing" — keeps the committed file | WORKSTATIONS                            |
+
+**`docs/CONTENT-SOURCES.md` is the evidence**: which repo, which URL, which
+licence, and how stable each source looked when it was checked. Read it before
+changing a source, and update it when you do.
+
+### Running a sync
+
+```
+npm run sync                    fetch everything, rewrite what changed
+npm run sync:check              dry run; exits 1 if anything would change
+npm run sync -- --only NEWS     one page (comma-separated, repeatable)
+npm run sync -- --menu          also refresh menu.json's URLs from sources.json
+```
+
+The sync is idempotent — running it twice leaves the second run nothing to do —
+and safe under failure: an unreachable source leaves that page's committed JSON
+alone, and the run reports it and exits non-zero. It never touches
+`content/menu.json` unless you pass `--menu`, and even then only the URLs; the
+labels, order and block counts are editorial. It writes the same
+`{key,title,url,nodes}` shape documented above, formatted through prettier, so
+`npm run format:check` and the sync always agree.
+
+A weekly GitHub Actions run (`.github/workflows/sync-content.yml`, Mondays at
+06:00 UTC) does the same and opens a pull request on the `content-sync` branch
+with the diff summary in the body. It never pushes to `main`: the diff is copy,
+and a human should read it.
+
+### Changing where a page comes from
+
+The source is _expected_ to move. The node tuples are the stable contract;
+everything upstream of them is configuration.
+
+**A new URL, same shape.** Change `url` in `sources.json`. Nothing else.
+
+**The markup changed.** Change that page's selectors — `root`, `exclude`,
+`pairs`, `promote`. Still no code.
+
+**A different kind of source** — say the news markdown lands in a licensed
+repo. Change `adapter` to `github-markdown` and give it `repo`/`dir`. The
+adapter already exists.
+
+**Somewhere no adapter handles.** Add one file:
+
+```js
+// scripts/sync/adapters/my-source.mjs
+export async function fetchNodes(source, deps) {
+  const raw = await deps.fetchText(source.url);
+  return { title: source.title, url: source.url, nodes: [/* node tuples */] };
+}
+```
+
+Adapters take their I/O as `deps` (`fetchText`, `fetchJson`, `readCurrent`) and
+never call `fetch` themselves — that is what lets the tests drive them from
+fixtures with no network. Export the pure "bytes in, nodes out" half, run it
+through `normaliseNodes` from `scripts/sync/normalise.mjs`, and add a suite
+under `test/unit/sync/` with a small fixture in `test/fixtures/sync/`. Then
+point the page at it in `sources.json` and record why in
+`docs/CONTENT-SOURCES.md`.
+
+**Nothing can source it reliably.** Set `"adapter": "static"` with a `reason`.
+The sync leaves the snapshot alone and reports the page as skipped rather than
+pretending it succeeded. WORKSTATIONS is the worked example: eighty photographs
+with no captions.
+
+### Guard rails
+
+The sync refuses to write a page that looks like a broken scrape: zero nodes,
+fewer than that page's `minNodes`, or less than half what the committed file
+had. A silently broken selector becomes a loud failure and the good snapshot
+survives.
+
 ## `content/menu.json`
 
 ```json
