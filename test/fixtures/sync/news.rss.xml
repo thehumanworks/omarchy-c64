@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Trimmed from https://omarchy.org/news/rss.xml (2026-09-06): two items. -->
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"
+     xmlns:content="http://purl.org/rss/1.0/modules/content/"
+     xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Omarchy News</title>
+    <link>https://omarchy.org/news/</link>
+    <atom:link href="https://omarchy.org/news/rss.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>Omacom Foundation secures $1.95M in tokens</title>
+      <link>https://omarchy.org/news/2026/09/tokens</link>
+      <guid isPermaLink="true">https://omarchy.org/news/2026/09/tokens</guid>
+      <pubDate>Wed, 03 Sep 2026 15:45:00 -0400</pubDate>
+      <dc:creator>DHH</dc:creator>
+      <description><![CDATA[<p>Meta Superintelligence Labs joins as Founding Token Patron.</p>]]></description>
+      <content:encoded><![CDATA[<p>The full post body, which we deliberately ignore.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title>The first plugin competition winners</title>
+      <link>https://omarchy.org/news/2026/08/plugin-competition</link>
+      <pubDate>Fri, 28 Aug 2026 09:00:00 +0000</pubDate>
+      <description>Radio Atlas, Omagotchi, and AirPods take the podium.</description>
+    </item>
+  </channel>
+</rss>

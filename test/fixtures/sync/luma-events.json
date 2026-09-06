@@ -1,0 +1,33 @@
+{
+  "entries": [
+    {
+      "api_id": "evtent-1",
+      "waitlist_active": false,
+      "registration_availability": "available",
+      "hosts": [{ "name": "Megabyte" }, { "name": "Devfolio" }],
+      "event": {
+        "api_id": "evt-1",
+        "name": "Omarchy BLR Meetup 001",
+        "start_at": "2026-09-06T12:00:00Z",
+        "end_at": "2026-09-06T13:30:00Z",
+        "timezone": "Asia/Kolkata",
+        "url": "blr-001",
+        "geo_address_info": { "city": "Bengaluru", "country": "India" }
+      }
+    },
+    {
+      "api_id": "evtent-2",
+      "waitlist_active": true,
+      "hosts": [],
+      "event": {
+        "api_id": "evt-2",
+        "name": "Omarchy TOKYO Night",
+        "start_at": "2026-09-10T11:00:00Z",
+        "timezone": "Asia/Tokyo",
+        "url": "tokyo-night",
+        "geo_address_info": {}
+      }
+    }
+  ],
+  "has_more": false
+}

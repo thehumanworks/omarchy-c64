@@ -41,8 +41,17 @@ local const npmBin: List<String> = List("npx", "--no-install")
 local linters = new Mapping<String, Step> {
   // Formatting for every text file prettier understands. .prettierignore
   // decides what is out of scope.
+  //
+  // `depends` on eslint so that in the FIX path prettier runs last. Without it
+  // the two fixers race and eslint wins: `eslint --fix` applying the `curly`
+  // rule rewrites a multi-line `if (x) throw ...` into `if (x) {throw ...}` on
+  // one line, which prettier had already formatted and would format back. The
+  // commit then lands prettier-dirty even though the hook reported success.
+  // Formatting is the last word: eslint decides what the code says, prettier
+  // decides how it is laid out.
   ["prettier"] = (Builtins.prettier) {
     prefix = npmBin
+    depends = List("eslint")
   }
 
   // eslint with warnings treated as errors, matching `npm run lint`.

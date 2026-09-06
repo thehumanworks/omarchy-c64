@@ -1,0 +1,98 @@
+{
+  "$comment": "Where each page's copy comes from. One row per content/pages/<key>.json. Adapters live in scripts/sync/adapters/. See docs/CONTENT-SOURCES.md for the evidence behind every choice, and docs/CONTENT.md for how to change one.",
+  "pages": {
+    "MANUAL": {
+      "adapter": "github-markdown",
+      "url": "https://omarchy.org/manual/",
+      "title": "THE OMARCHY MANUAL",
+      "repo": "omacom/omarchy",
+      "branch": "quattro",
+      "dir": "manual",
+      "lede": "01-welcome-to-omarchy.md",
+      "contentsHeading": "Contents",
+      "readMore": "Read the full manual",
+      "minNodes": 40,
+      "note": "MIT-licensed markdown; the default branch is resolved at runtime because 'quattro' will change at the next major."
+    },
+    "NEWS": {
+      "adapter": "feed",
+      "url": "https://omarchy.org/news/rss.xml",
+      "page": "https://omarchy.org/news/",
+      "title": "OMARCHY NEWS",
+      "lead": "Announcements, releases, and other news",
+      "dateLabel": "Date",
+      "readMore": "Read more",
+      "limit": 12,
+      "minNodes": 10
+    },
+    "MEETUPS": {
+      "adapter": "luma",
+      "url": "https://omarchy.org/meetups/",
+      "title": "MEETUPS",
+      "lead": "Meetups around the world",
+      "openLabel": "Open in Luma",
+      "calendarSelector": ".meetups__embed",
+      "calendarSlug": "omarchy",
+      "period": "future",
+      "limit": 100,
+      "rulesRoot": "section.rules",
+      "promote": [{ "match": "p.rule__name", "kind": "H3" }],
+      "minNodes": 20,
+      "fallback": {
+        "adapter": "ics",
+        "comment": "https://api.lu.ma/ics/get?entity=calendar&id=<cal-id> serves the same calendar; STATUS is TENTATIVE on every event there, so it is dropped."
+      }
+    },
+    "AIR": {
+      "adapter": "html",
+      "url": "https://omarchy.org/air/",
+      "title": "OMARCHY AIR",
+      "root": "main.main",
+      "exclude": "img",
+      "deferHeadingLinks": true,
+      "minNodes": 10
+    },
+    "SECURITY": {
+      "adapter": "html",
+      "url": "https://omarchy.org/security/",
+      "title": "SECURITY AT OMARCHY",
+      "root": "main.main",
+      "exclude": "svg",
+      "minNodes": 15
+    },
+    "TEAMS": {
+      "adapter": "html",
+      "url": "https://omarchy.org/teams/",
+      "title": "THE TEAMS",
+      "root": "main.main",
+      "exclude": "img",
+      "pairs": [{ "match": "article.member", "key": ".member__name", "value": ".member__meta" }],
+      "minNodes": 15
+    },
+    "PATRONS": {
+      "adapter": "html",
+      "url": "https://omarchy.org/patrons/",
+      "title": "THE OMACOM FOUNDATION",
+      "root": "main.main",
+      "exclude": "img",
+      "lead": true,
+      "pairs": [{ "match": "article.member", "key": ".member__name", "value": ".member__meta" }],
+      "minNodes": 15
+    },
+    "SPONSORS": {
+      "adapter": "html",
+      "url": "https://omarchy.org/sponsorships/",
+      "title": "OMACOM FOUNDATION FUNDING",
+      "root": "main.main",
+      "exclude": "img, .sponsorship__logo",
+      "pairs": [{ "match": "p.sponsorship__terms", "keyText": "Tier", "value": ":self" }],
+      "minNodes": 8
+    },
+    "WORKSTATIONS": {
+      "adapter": "static",
+      "url": "https://omarchy.org/workstations/",
+      "title": "WORKSTATIONS",
+      "reason": "The page is 80 photographs in a lightbox with no captions, no alt text and no attribution. There is no text for a 40-column screen to print, so the hand-written snapshot stands until the gallery gains captions."
+    }
+  }
+}

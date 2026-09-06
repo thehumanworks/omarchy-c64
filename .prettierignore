@@ -6,3 +6,7 @@ test-results/
 package-lock.json
 mise.lock
 .claude/
+
+# Fixtures are verbatim samples of external data: reformatting them would
+# change the very bytes the sync adapters are tested against.
+test/fixtures/

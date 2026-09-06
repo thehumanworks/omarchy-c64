@@ -1,0 +1,30 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Luma//Omarchy Meetups//EN
+X-WR-CALNAME:Omarchy Meetups
+BEGIN:VEVENT
+DTSTART:20260826T140000Z
+DTEND:20260826T160000Z
+DTSTAMP:20260906T093944Z
+ORGANIZER;CN="Ziad":MAILTO:calendar-invite@lu.ma
+UID:evt-NCrEUwhJNMsC4Kb@events.lu.ma
+SUMMARY:Omarchy Meetup: Egypt
+DESCRIPTION:Get up-to-date information at: https://luma.com/ylmes5ls\n\nAd
+ dress:\nAl Shorouk City\n\nHosted by Ziad
+LOCATION:Al Shorouk City\, El Shorouk\, Egypt
+SEQUENCE:210850784
+STATUS:TENTATIVE
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260825T223000Z
+DTEND:20260826T003000Z
+DTSTAMP:20260906T093944Z
+ORGANIZER;CN="Promovaweb":MAILTO:calendar-invite@lu.ma
+UID:evt-YDyCEwwpiMzSFDB@events.lu.ma
+SUMMARY:Omarchy Meetup Sao Paulo
+DESCRIPTION:Get up-to-date information at: https://luma.com/dhcang6s
+LOCATION:https://luma.com/event/evt-YDyCEwwpiMzSFDB
+SEQUENCE:210850784
+STATUS:TENTATIVE
+END:VEVENT
+END:VCALENDAR
