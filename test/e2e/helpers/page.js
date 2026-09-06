@@ -1,7 +1,6 @@
 // Shared plumbing for the e2e suites: open the built page, get past the boot
 // animation, and read the text off the tube through window.__omarchy.
 /* Callbacks in page.evaluate/addInitScript run in the browser, not in Node. */
-/* global document, window */
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect } from '@playwright/test';

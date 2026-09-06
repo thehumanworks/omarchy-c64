@@ -1,7 +1,6 @@
 // No WebGL, no Commodore: the module script throws, body gets `failed`, and the
 // plain-links panel takes over. Simulated by making getContext refuse webgl.
 /* Callbacks in page.evaluate/addInitScript run in the browser, not in Node. */
-/* global document, HTMLCanvasElement */
 import { expect, test } from '@playwright/test';
 import { DIST_URL } from './helpers/page.js';
 

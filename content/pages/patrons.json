@@ -1,0 +1,28 @@
+{
+  "key": "PATRONS",
+  "title": "THE OMACOM FOUNDATION",
+  "url": "https://omarchy.org/patrons/",
+  "nodes": [
+    ["H2", "The Omacom Foundation"],
+    ["H2", "Founding Patrons"],
+    ["P", "Each contributing $1,000,000 to the mission"],
+    ["KV", "Tobi Lutke", "Shopify"],
+    ["KV", "Patrick Collison", "Stripe"],
+    ["KV", "Michael Dell", "Dell Technologies"],
+    ["KV", "Jack Dorsey", "Block"],
+    ["KV", "Matthew Prince", "Cloudflare"],
+    ["KV", "Brendan Iribe", "Sesame"],
+    ["KV", "Jason Fried", "37signals"],
+    ["KV", "Drew Houston", "Dropbox"],
+    ["KV", "Peter Steinberger", "OpenClaw"],
+    ["KV", "DHH", "37signals"],
+    ["H2", "Distinguished Patrons"],
+    ["P", "Each contributing $100,000 to the mission"],
+    ["P", "Get in touch with david@omarchy.org"],
+    ["A", "david@omarchy.org", "mailto:david@omarchy.org"],
+    ["H2", "Patrons"],
+    ["P", "Each contributing as they see fit to the mission"],
+    ["P", "Open for everyone. Coming soon."],
+    ["A", "Elite capital. Public code.", "https://oligarchy.fyi/"]
+  ]
+}

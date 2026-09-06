@@ -1,0 +1,64 @@
+{
+  "key": "SECURITY",
+  "title": "SECURITY AT OMARCHY",
+  "url": "https://omarchy.org/security/",
+  "nodes": [
+    ["H2", "Report a vulnerability"],
+    [
+      "P",
+      "If you believe you've found a security vulnerability in Omarchy, please tell the Omarchy Security Team privately so we have an opportunity to investigate and fix it before it is made public."
+    ],
+    ["A", "security@omarchy.org", "mailto:security@omarchy.org?subject=Security%20report"],
+    [
+      "P",
+      "Please don't report potential vulnerabilities publicly in GitHub Issues, Discord, or social media before they've been resolved."
+    ],
+    ["H2", "What is a vulnerability?"],
+    [
+      "P",
+      "We consider a bug a security vulnerability when it can be exploited to cross a meaningful security boundary: an untrusted or lower-privileged party gains access, permissions, or control they didn't already have."
+    ],
+    [
+      "P",
+      "Code that could be more robust but does not cross a security boundary is an improvement rather than a security vulnerability. We may still merge a proposed fix and credit the reporter in our release notes."
+    ],
+    [
+      "P",
+      "Eligibility for our security credits page depends on whether a report identifies a confirmed security vulnerability, not on its severity."
+    ],
+    ["H2", "What to include"],
+    ["P", "Give us enough information to understand and reproduce the issue:"],
+    ["LI", "The affected component and Omarchy version."],
+    ["LI", "An explanation of what an attacker can do before and after exploitation."],
+    ["LI", "Steps to reproduce the issue and any proof of concept."],
+    ["LI", "Your preferred contact details for follow-up."],
+    ["H2", "Responsible disclosure"],
+    ["P", "Please act in good faith while investigating and reporting vulnerabilities:"],
+    ["LI", "Only test systems and accounts you own or have explicit permission to test."],
+    ["LI", "Avoid privacy violations, disruption, data destruction, and service degradation."],
+    ["LI", "Don't exploit a vulnerability beyond what is needed to demonstrate it."],
+    [
+      "LI",
+      "Give us a reasonable opportunity to investigate and address the issue before publishing details."
+    ],
+    [
+      "P",
+      "We'll review your report and keep you informed as we're able while we work toward a resolution."
+    ],
+    ["H2", "Credits"],
+    [
+      "P",
+      "Researchers who privately report a confirmed security vulnerability and give us the chance to ship a fix are thanked on the security credits page. Accepted improvements that don't cross a security boundary may still be credited in our release notes."
+    ],
+    [
+      "P",
+      "Credits link to each reporter's X profile and show their avatar. For duplicate reports, only the first reporter is eligible for credit."
+    ],
+    ["H2", "Regular bugs and support"],
+    [
+      "P",
+      "For anything that isn't a security vulnerability, please use the Omarchy issue tracker."
+    ],
+    ["A", "Omarchy issue tracker", "https://github.com/omacom/omarchy/issues"]
+  ]
+}

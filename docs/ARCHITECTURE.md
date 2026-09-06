@@ -24,7 +24,7 @@ This file is the map. Read it before touching `src/`.
    it creates the objects and wires callbacks. Modules do not reach up to
    their callers.
 5. **One direction of data.** `content → machine state → text buffer → painter
-   canvas → CRT shader → post-processing → screen`. Input events mutate machine
+canvas → CRT shader → post-processing → screen`. Input events mutate machine
    state; the render loop repaints.
 6. **Behaviour is verified, not assumed.** Pure modules have unit tests
    (`node:test`); the built page has Playwright tests that boot it in headless
@@ -57,15 +57,18 @@ dist/                  build output (git-ignored)
 Each directory is one layer. Arrows show allowed imports (only downward).
 
 ```
-runtime/   loop.js (the animate tick), favicon.js
+runtime/   loop.js (the animate tick), favicon.js, test-hook.js
    ↓
-input/     pointer.js (pick, knobs, hover/click on tube text), keyboard.js, hint.js
+input/     pick.js (raycast the case and the tube), pointer.js (knobs, hover,
+           click on tube text), keyboard.js, hint.js
    ↓
-scene/     renderer.js textures.js case.js crt.js hardware.js room.js post.js layout.js
+scene/     renderer.js textures.js case.js case-geometry.js crt.js hardware.js
+           room.js post.js layout.js
            shaders/*.js  (each shader is one file exporting a GLSL string)
    ↓
 machine/   state.js chrome.js menu.js doc.js doc-lines.js text-page.js
-           commands.js help.js navigate.js maze.js boot.js repaint.js
+           commands.js help.js dir.js navigate.js maze.js boot.js power.js
+           repaint.js
    ↓
 screen/    text-buffer.js (pure: the C64 video RAM) painter.js (canvas + atlas) logo.js
    ↓
@@ -90,14 +93,22 @@ content/   index.js loads and normalises content/*.json (uppercase, ASCII quotes
 - **Page renderers** (`machine/menu.js`, `doc.js`, `text-page.js`, `chrome.js`)
   take `(buffer, machine, content)` and only write into the buffer.
 - **`exec(cmd, ctx)`** (`machine/commands.js`): a table of `[matcher, handler]`
-  rows. `ctx` carries the side-effect callbacks (`openDoc`, `openLink`,
-  `coldStart`, `startMaze`, `say`, `snd`), so the interpreter is testable.
-- **Case nine-slice** (`scene/case.js`): `solveBands`, `solveCase` (pure maths)
-  and `buildCaseGeometry` (three.js). The pure part is unit-tested.
+  rows walked top to bottom. A matcher is a `RegExp`, a list of strings and
+  regexes, or a function. `ctx` carries the injected side effects —
+  `{ buffer, machine, content, snd, coldStart, startMaze, launch, openLink }` —
+  so the interpreter runs in plain Node with no DOM. (`launch` stands in for
+  the planned `openDoc`: whether a menu entry opens on the tube or in a tab is
+  `navigate.js`'s decision, not the interpreter's. `say` is imported from
+  `machine/state.js` rather than injected, because it only writes state.)
+- **Case nine-slice**: `scene/case.js` is the pure maths (`solveBands`,
+  `solveCase`, `bandAt`, `mapX`, `mapY`) and is unit-tested; the three.js
+  builder `buildCaseGeometry` lives next door in `scene/case-geometry.js` so
+  `case.js` stays importable in Node.
 - **Test hook** (`runtime/test-hook.js`): installs `window.__omarchy` with
-  `screenText()` → array of row strings, `state()` → a snapshot of `machine`
-  plus `cols`/`rows`, and `skipBoot()`. It is tiny and it is part of the
-  product's contract with the e2e suite. Keep it working.
+  `screenText()` → array of row strings, `state()` → `{ mode, page, sel, input,
+status, powered, cols, rows, border, bg, doc: { key, off } | null }`, and
+  `skipBoot()`. It is tiny and it is part of the product's contract with the
+  e2e suite. Keep it working.
 
 ## Build
 
@@ -106,9 +117,13 @@ content/   index.js loads and normalises content/*.json (uppercase, ASCII quotes
 1. esbuild bundles `src/main.js` (format `esm`, minified, three.js included
    from `vendor/`).
 2. Assets in `assets/` are base64-encoded into `window.__OM_RES__`.
-3. Both are inlined into `site/index.html` at the `/*{{APP}}*/` and
-   `/*{{RES}}*/` markers; `site/styles.css` goes into `<style>`.
-4. Output: `dist/index.html`, a single self-contained file (~0.8 MB).
+3. Both are inlined into `site/index.html` at the `APP` and `RES` markers;
+   `site/styles.css` goes in at the `CSS` marker inside `<style>`. A missing
+   marker fails the build.
+4. Output: `dist/index.html`, a single self-contained file (~0.65 MB).
+
+`npm run dev` adds `--watch --serve`: it rebuilds on any change under `src/`,
+`content/`, `site/` or `assets/` and serves `dist/` on port 8000.
 
 There is deliberately no runtime code loading, so the page works from `file://`.
 
@@ -117,4 +132,23 @@ There is deliberately no runtime code loading, so the page works from `file://`.
 The original desk scene (keyboard, disk drive, floppy, oak desk, canvas print,
 studio monitor) is not drawn any more: the framing is the monitor alone. The
 code and textures were deleted rather than left invisible. If the desk ever
-comes back, start from git history (`git log --all -- res/keyboard.webp`).
+comes back, start from the history of `res/keyboard.webp`.
+
+Gone with it: `seat()` and the `CONTACTS` contact-shadow list, the `SOLO` flag,
+the drive/floppy/keyboard LEDs and their hint labels, `loadIso()` and its
+timer, and the unused zoom controls (`view.zoom`, `view.targetZoom` and
+`view.userZ` were always 0, so the camera maths is now written out flat). The
+wall survives: it is one untextured quad and it is what the tube glows onto.
+Its shader still carries a literal `-0.370` where `DESK_Y` used to be, because
+the contact shading at the foot of the wall reads from it.
+
+## Deviations from the original plan
+
+Both minimal, both deliberate:
+
+- `eslint.config.js` sets `ecmaVersion: 'latest'` rather than `2024`, because
+  the content layer needs import attributes (`with { type: 'json' }`), which
+  Node requires for JSON modules. No rule was relaxed.
+- `vendor/` is no longer ignored: three.js is committed there so a clone builds
+  with no network step. See `vendor/README.md` for the version and the upgrade
+  recipe. Lint and Prettier still skip the directory.

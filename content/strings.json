@@ -1,0 +1,125 @@
+{
+  "ticker": "··· OMACOM FOUNDATION LAUNCHES WITH $10 MILLION ··· BEAUTIFUL, FUN & OPINIONATED LINUX BY DHH ··· INCUBATED AT 37SIGNALS ··· SPONSORED HOSTING BY CLOUDFLARE ··· TYPE HELP FOR THE COMMAND LIST ··· ",
+  "hints": [
+    "CRSR KEYS TO MOVE · RETURN TO LAUNCH",
+    "OR JUST TYPE A NAME AND HIT RETURN",
+    "TYPE  HELP  FOR THE COMMAND LIST",
+    "TYPE  ISO  TO GRAB THE IMAGE",
+    "TRY TYPING  10 PRINT",
+    "THE 10 PRINT MAZE STILL RUNS FOREVER",
+    "THE POWER SWITCH WORKS. OF COURSE IT DOES.",
+    "DRAG THE KNOBS. IT IS A REAL MONITOR."
+  ],
+  "chrome": {
+    "title": " OMARCHY/64 ",
+    "versionWide": " V4.0.1 · 38911 BYTES FREE ",
+    "version": " V4.0.1 ",
+    "ready": "READY."
+  },
+  "menu": {
+    "tagline": "BEAUTIFUL, FUN & OPINIONATED LINUX",
+    "byline": "BY DHH",
+    "blurbWide": [
+      "THE MALLEABLE OS FOR THE AGE OF AGENTS.",
+      "VIBE YOUR WAY THROUGH EVERY ALTERATION,",
+      "TWEAK, AND DESIRE. BE THE OMARCH."
+    ],
+    "blurb": "THE MALLEABLE OS FOR THE AGE OF AGENTS. VIBE YOUR WAY THROUGH EVERY ALTERATION, TWEAK, AND DESIRE. BE THE OMARCH.",
+    "caption": " MAIN MENU ",
+    "footerWide": "CRSR KEYS AND RETURN, OR TYPE A NUMBER",
+    "footer": "CRSR + RETURN, OR A NUMBER"
+  },
+  "doc": {
+    "footerScroll": "CRSR/SPACE SCROLLS · RUN GOES BACK",
+    "footerBack": "RUN GOES BACK TO THE MENU"
+  },
+  "help": {
+    "title": "HELP",
+    "heading": "THE OMARCHY/64 COMMAND SET",
+    "footer": "CRSR KEYS AND RETURN WORK TOO.",
+    "commands": [
+      ["RUN", "BACK TO THE MENU"],
+      ["DIR", "CATALOG THE DISK"],
+      ["LIST", "LIST THE PROGRAM"],
+      ["ABOUT", "WHAT IS THIS THING"],
+      ["<NAME>", "LAUNCH A MENU ENTRY"],
+      ["<1 - 14>", "LAUNCH BY NUMBER"],
+      null,
+      ["POKE 53280,N", "BORDER COLOUR 0-15"],
+      ["POKE 53281,N", "SCREEN COLOUR 0-15"],
+      ["SYS 64738", "COLD START"],
+      ["10 PRINT", "... YOU KNOW THE ONE"]
+    ]
+  },
+  "about": {
+    "title": "OMARCHY 4.0.1 / X86_64",
+    "lines": [
+      ["OMARCHY IS BEAUTIFUL, FUN AND OPINIONATED LINUX BY DHH.", "WHITE"],
+      ["ARCH PLUS HYPRLAND, READY THE SECOND IT BOOTS.", "WHITE"],
+      "",
+      [
+        "THE MALLEABLE OS FOR THE AGE OF AGENTS, WHERE YOU CAN VIBE YOUR WAY THROUGH EVERY ALTERATION, TWEAK, AND DESIRE.",
+        "CYAN"
+      ],
+      ["BE THE OMARCH AND COMMAND YOUR AGENT.", "CYAN"],
+      "",
+      ["INCUBATED AT 37SIGNALS, MAKERS OF BASECAMP AND HEY.", "LTGREY"],
+      ["HOSTING BY CLOUDFLARE. PENDING TRADEMARK.", "LTGREY"],
+      "",
+      ["PARTNER OR PATRON? DAVID@OMARCHY.ORG", "LTGREEN"]
+    ]
+  },
+  "list": {
+    "title": "LIST",
+    "lines": [
+      ["10 PRINT \"OMARCHY\"", "LTGREEN"],
+      ["20 REM BEAUTIFUL, FUN, OPINIONATED", "GREY"],
+      ["30 LET OS$ = \"ARCH LINUX\"", "LTGREEN"],
+      ["40 LET WM$ = \"HYPRLAND\"", "LTGREEN"],
+      ["50 GOSUB 900 : REM VIBE THE CONFIG", "LTGREEN"],
+      ["60 FOR A = 1 TO AGENTS", "LTGREEN"],
+      ["70   COMMAND A : REM BE THE OMARCH", "LTGREEN"],
+      ["80 NEXT A", "LTGREEN"],
+      ["90 IF NOT BEAUTIFUL THEN GOTO 10", "LTGREEN"],
+      ["100 SYS 40001 : REM SHIP IT", "LTGREEN"],
+      "",
+      ["READY.", "LTGREY"]
+    ]
+  },
+  "dir": {
+    "title": "DEVICE 8 · OMARCHY",
+    "header": "0 \"OMARCHY 4.0.1  \" 64 2A",
+    "footer": "135 BLOCKS FREE."
+  },
+  "boot": {
+    "banner": "    **** OMARCHY 64 BASIC V4.0.1 ****\n\n",
+    "free": " 64K RAM SYSTEM  38911 BASIC BYTES FREE\n\n",
+    "ready": "READY.\n",
+    "load": "LOAD\"OMARCHY*\",8,1",
+    "searching": "\nSEARCHING FOR OMARCHY*\n",
+    "loading": "LOADING\n",
+    "run": "RUN"
+  },
+  "maze": {
+    "footer": " 10 PRINT CHR$(205.5+RND(1)); : 20 GOTO 10"
+  },
+  "status": {
+    "ok": "OK.",
+    "loading": "LOADING $1 ···",
+    "launching": "LAUNCHING $1 ···",
+    "mail": "OPENING MAIL ···",
+    "permission": "?PERMISSION DENIED  ERROR",
+    "cannotExit": "?CANNOT EXIT  ERROR. TRY THE POWER SWITCH.",
+    "notFound": "?NOT FOUND  ERROR",
+    "syntax": "?SYNTAX  ERROR"
+  },
+  "labels": {
+    "power": "POWER",
+    "bright": "BRIGHTNESS · DRAG",
+    "contrast": "CONTRAST · DRAG",
+    "volume": "VOLUME · DRAG",
+    "screen": "",
+    "monitor": "",
+    "open": "OPEN $1"
+  }
+}

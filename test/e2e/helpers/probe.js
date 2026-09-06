@@ -11,7 +11,6 @@
 // takes under a second. The point that comes back is then confirmed with a real
 // mouse move, so the click that follows is genuine user input.
 /* Callbacks in page.evaluate/addInitScript run in the browser, not in Node. */
-/* global document, PointerEvent */
 
 /** The current #hint text ('' when the pill is off). */
 export function hintText(page) {

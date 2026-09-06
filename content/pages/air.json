@@ -1,0 +1,36 @@
+{
+  "key": "AIR",
+  "title": "OMARCHY AIR",
+  "url": "https://omarchy.org/air/",
+  "nodes": [
+    ["H2", "Artists in Residence"],
+    [
+      "P",
+      "A six-month residency for artists who make Omarchy beautiful. Themes, plugins, and whatever else. The point is to let creativity flow with the support of the Omacom Foundation. Up to five seats at any one time."
+    ],
+    ["H2", "The first residents"],
+    ["H3", "HANCORE"],
+    [
+      "P",
+      "Solitude and Last Horizon both ship with Omarchy, and another twenty of his themes sit on the extras page - more than anyone else has contributed: Batou, Oxo Carbon, Velvet Night, Rose of Dune, Shades of Jade, and on it goes. He's a mechanical engineer who became one of the defining aesthetic forces in this community, sits on Omarchy Core, and helps steward the plugin ecosystem."
+    ],
+    ["A", "HANCORE", "https://github.com/HANCORE-linux"],
+    ["H3", "OldJobobo"],
+    [
+      "P",
+      "Three of the themes that ship with Omarchy are his - Lumon, Miasma, and Retro 82 - and another ten sit on the extras page, from Batman to City-783 to Sakura Mochi. He works in whole palettes rather than one-off colour schemes, which is why his themes hold together across the terminal, Neovim, btop, and the shell instead of just looking good in a screenshot."
+    ],
+    ["A", "OldJobobo", "https://github.com/OldJobobo"],
+    ["H3", "Taha"],
+    [
+      "P",
+      "He drew the Omarchy logo, which is reason enough, and he built Omarchist, the GUI for making your own themes without touching a config file. Matte Black is his and ships with Omarchy, along with Gold Rush, Sunset Drive, and VHS 80 on the extras page."
+    ],
+    ["A", "Taha", "https://github.com/tahayvr"],
+    ["P", "Remaining seats by invitation"],
+    ["H2", "What it comes with"],
+    ["LI", "$2,500/month for the full six months."],
+    ["LI", "Token account so the agents never need to stop."],
+    ["LI", "Permanent recognition as AIR alumni when six months are up."]
+  ]
+}

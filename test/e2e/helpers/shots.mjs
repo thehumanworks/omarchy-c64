@@ -10,7 +10,6 @@
 // keypress (the site does that on any key), lets the CRT warm up, then shoots each
 // viewport. Prints the body class and any page/console errors per viewport.
 /* Callbacks in page.evaluate/addInitScript run in the browser, not in Node. */
-/* global document */
 import path from 'node:path';
 import { chromium } from '@playwright/test';
 

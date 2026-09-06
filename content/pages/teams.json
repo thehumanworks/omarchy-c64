@@ -1,0 +1,32 @@
+{
+  "key": "TEAMS",
+  "title": "THE TEAMS",
+  "url": "https://omarchy.org/teams/",
+  "nodes": [
+    ["H2", "The teams guiding Omarchy"],
+    ["H2", "Omarchy Core"],
+    ["P", "Setting the direction"],
+    ["KV", "DHH", "USA/Denmark"],
+    ["KV", "Ryan Hughes", "USA"],
+    ["KV", "Tobi Lutke", "Canada"],
+    ["KV", "Bjarne Overli", "Norway"],
+    ["KV", "HANCORE", "Germany"],
+    ["KV", "Spencer Bull", "USA"],
+    ["H2", "Omarchy Security"],
+    ["P", "Keeping your system safe"],
+    ["KV", "Adrian Rangel", "Mexico"],
+    ["KV", "Mehmet Ince", "UK"],
+    ["KV", "Erik Melton", "Norway"],
+    ["KV", "Sayem Chowdhury", "Bangladesh"],
+    ["KV", "Sebastian Stange", "Germany"],
+    ["KV", "Ryan Hughes", "USA"],
+    ["KV", "DHH", "USA/Denmark"],
+    ["H2", "Omarchy Rangers"],
+    ["P", "Helping others find their way"],
+    ["KV", "Mihai", "Romania"],
+    ["KV", "Mateo Vaz", "Uruguay"],
+    ["KV", "Nira", "Nepal"],
+    ["P", "Want to help? Apply to rangers@omarchy.org"],
+    ["A", "rangers@omarchy.org", "mailto:rangers@omarchy.org"]
+  ]
+}
