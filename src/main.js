@@ -27,6 +27,7 @@ import { createWall } from './scene/room.js';
 import { createPost } from './scene/post.js';
 import { createLayout } from './scene/layout.js';
 import { createHint } from './input/hint.js';
+import { createCursor } from './input/cursor.js';
 import { createPointer } from './input/pointer.js';
 import { createKeyboard } from './input/keyboard.js';
 import { createLoop } from './runtime/loop.js';
@@ -93,6 +94,7 @@ window.addEventListener('resize', layout);
 
 /* ------------------------------------------------------------ interaction */
 const setHint = createHint(document.getElementById('hint'));
+createCursor({ canvas, el: document.getElementById('cursor') });
 
 function wake() {
   Snd.init();

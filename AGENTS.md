@@ -98,6 +98,12 @@ add its help line to `content/strings.json`, add a case to
 the uniforms and defaults, `src/scene/post.js` the bloom and final grade. Every
 change here needs the visual proof above.
 
+**Redraw the retro mouse pointer.** The arrow and hand are pixel-art strings at
+the top of `src/input/cursor.js` (`X` fill, `o` outline, `.` transparent) —
+edit the rows, keep every row the same length, then run
+`npx playwright test test/e2e/cursor.spec.js --update-snapshots` and look at
+`test/e2e/__screenshots__/cursor.spec.js/desktop-cursor.png`.
+
 **Update three.js.** See `vendor/README.md`.
 
 **Update news or meetups** (or any other synced page). Run `npm run sync`,

@@ -52,7 +52,7 @@ function onMove(p, e) {
   const target = hover === 'screen' ? hitAt(p, e.clientX, e.clientY) : null;
   trackHover(p, target);
   const l = label(p, target, hover);
-  p.canvas.style.cursor = target || l ? 'pointer' : 'default';
+  p.canvas.dataset.pointer = target || l ? 'link' : '';
   p.setHint(l);
 }
 

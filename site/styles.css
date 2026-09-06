@@ -62,6 +62,50 @@ body.ready #gl {
   transform: translate(-50%, 0);
 }
 
+/* the retro pointer sprite; the artwork lives in src/input/cursor.js */
+#cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 22px;
+  height: 34px;
+  transform-origin: 0 0;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 4px rgba(112, 109, 235, 0.7));
+  pointer-events: none;
+  z-index: 6;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform;
+  transition:
+    opacity 0.28s linear,
+    visibility 0s linear 0.28s;
+}
+#cursor.on {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.1s linear,
+    visibility 0s;
+}
+#cursor.down {
+  --cs: 0.9;
+}
+@media (pointer: coarse) {
+  #cursor {
+    width: 33px;
+    height: 51px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #cursor,
+  #cursor.on {
+    transition: none;
+  }
+}
+
 /* boot loader */
 #loader {
   position: fixed;

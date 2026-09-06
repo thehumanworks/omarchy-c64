@@ -63,7 +63,10 @@ Each directory is one layer. Arrows show allowed imports (only downward).
 runtime/   loop.js (the animate tick), favicon.js, test-hook.js
    ↓
 input/     pick.js (raycast the case and the tube), pointer.js (knobs, hover,
-           click on tube text), keyboard.js, hint.js
+           click on tube text), keyboard.js, hint.js, cursor.js (the pixel-art
+           pointer sprite that stands in for the OS cursor over the canvas;
+           `pointer.js` tells it which shape to use through
+           `canvas.dataset.pointer`)
    ↓
 scene/     renderer.js textures.js case.js case-geometry.js crt.js hardware.js
            room.js post.js layout.js
