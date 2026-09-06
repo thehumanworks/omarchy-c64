@@ -55,12 +55,37 @@ test.describe('mobile monitor hardware', () => {
     await expect(page.locator('input, textarea, #hint')).toHaveCount(0);
   });
 
+  test('monitor surfaces suppress selection and iOS touch callouts', async ({ page }) => {
+    await atMenu(page);
+    const surfaces = await page
+      .locator('#gl, #cursor, #monitor-controls, #monitor-controls *')
+      .evaluateAll((elements) =>
+        elements.map((el) => ({
+          id: el.id || el.getAttribute('aria-label'),
+          selection: getComputedStyle(el).userSelect,
+          supportsCallout: CSS.supports('-webkit-touch-callout', 'none'),
+          callout: getComputedStyle(el).getPropertyValue('-webkit-touch-callout'),
+        })),
+      );
+    for (const surface of surfaces) {
+      expect(surface.selection, surface.id).toBe('none');
+      if (surface.supportsCallout) expect(surface.callout, surface.id).toBe('none');
+    }
+    expect(
+      await page
+        .locator('#fallback a')
+        .first()
+        .evaluate((el) => getComputedStyle(el).userSelect),
+    ).not.toBe('none');
+  });
+
   test('holding the rocker repeats and cancellation stops it', async ({ page }) => {
     await atMenu(page);
     const p = await point(page, true);
     const cdp = await page.context().newCDPSession(page);
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [p] });
     await expect.poll(async () => (await state(page)).sel).toBeGreaterThan(1);
+    expect(await page.evaluate(() => window.getSelection().toString())).toBe('');
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchCancel', touchPoints: [] });
     const selected = (await state(page)).sel;
     await page.waitForTimeout(500);
