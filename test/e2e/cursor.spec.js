@@ -1,5 +1,5 @@
 // The retro pointer sprite: it stands in for the OS cursor over the monitor,
-// turns into a hand over anything clickable, and echoes a touch for a moment.
+// turns into a hand over anything clickable, and stays at the last touch position.
 /* Callbacks in page.evaluate run in the browser, not in Node. */
 import { expect, test } from '@playwright/test';
 import { openSite, skipBoot } from './helpers/page.js';
@@ -9,9 +9,6 @@ const VIEWPORT = { width: 1280, height: 800 };
 
 const canvasCursor = (page) =>
   page.evaluate(() => getComputedStyle(document.getElementById('gl')).cursor);
-
-const shown = (page) =>
-  page.evaluate(() => document.getElementById('cursor').classList.contains('on'));
 
 async function atMenu(page, viewport = VIEWPORT) {
   await openSite(page, { viewport });
@@ -84,35 +81,43 @@ test('reduced motion still shows and hides the sprite', async ({ page }) => {
 });
 
 test.describe('touch', () => {
-  test.use({ hasTouch: true });
+  test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
 
-  test('a tap shows the sprite where the finger was, then fades it away', async ({ page }) => {
-    await atMenu(page);
-    const x = Math.round(VIEWPORT.width / 2);
-    const y = Math.round(VIEWPORT.height / 2);
-    // The sprite fades out 700ms after the touch, which is less than a couple of
-    // round trips under software GL, so catch it as it appears instead.
-    await page.evaluate(() => {
-      const el = document.getElementById('cursor');
-      window.__seen = null;
-      new MutationObserver(() => {
-        if (window.__seen || !el.classList.contains('on')) return;
-        const r = el.getBoundingClientRect();
-        const gl = document.getElementById('gl');
-        window.__seen = { x: r.x, y: r.y, cursor: getComputedStyle(gl).cursor };
-      }).observe(el, { attributes: true, attributeFilter: ['class'] });
+  test('the compact cursor stays visible after release and follows a drag', async ({ page }) => {
+    await atMenu(page, { width: 390, height: 844 });
+    const cursor = page.locator('#cursor');
+    await expect(cursor).toBeVisible();
+    await page.touchscreen.tap(120, 190);
+    await page.waitForTimeout(1100);
+    await expect(cursor).toBeVisible();
+    let box = await cursor.boundingBox();
+    expect(box.width).toBeLessThanOrEqual(17);
+    expect(box.height).toBeLessThanOrEqual(26);
+    expect(Math.abs(box.x - 120)).toBeLessThanOrEqual(5);
+    expect(Math.abs(box.y - 190)).toBeLessThanOrEqual(1);
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchStart',
+      touchPoints: [{ x: 120, y: 220 }],
     });
-    await page.touchscreen.tap(x, y);
-
-    const seen = await page.evaluate(() => window.__seen);
-    expect(seen, 'the sprite did not come up on tap').not.toBeNull();
-    expect(Math.abs(seen.x - x)).toBeLessThanOrEqual(4);
-    expect(Math.abs(seen.y - y)).toBeLessThanOrEqual(4);
-    // A touch leaves the OS cursor alone.
-    expect(seen.cursor).not.toBe('none');
-
-    await expect.poll(() => shown(page), { timeout: 3000 }).toBe(false);
-    await expect(page.locator('#cursor')).toBeHidden();
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [{ x: 260, y: 300 }],
+    });
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await cdp.detach();
+    await page.waitForTimeout(1100);
+    await expect(cursor).toBeVisible();
+    box = await cursor.boundingBox();
+    expect(Math.abs(box.x - 260)).toBeLessThanOrEqual(5);
+    expect(Math.abs(box.y - 300)).toBeLessThanOrEqual(1);
+    await expect(cursor).not.toHaveClass(/\bdown\b/);
+    expect(await canvasCursor(page)).not.toBe('none');
+    await expect(page).toHaveScreenshot('phone-cursor.png');
+    await page.touchscreen.tap(389, 843);
+    box = await cursor.boundingBox();
+    expect(box.x + box.width).toBeLessThanOrEqual(390);
+    expect(box.y + box.height).toBeLessThanOrEqual(844);
   });
 });
 

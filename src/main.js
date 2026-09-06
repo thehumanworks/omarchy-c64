@@ -26,11 +26,14 @@ import { createCrt } from './scene/crt.js';
 import { createWall } from './scene/room.js';
 import { createPost } from './scene/post.js';
 import { createLayout } from './scene/layout.js';
+import { controlBounds } from './scene/control-bounds.js';
 import { createHint } from './input/hint.js';
 import { createCursor } from './input/cursor.js';
 import { createPointer } from './input/pointer.js';
 import { createKeyboard } from './input/keyboard.js';
-import { createTouchKeyboard } from './input/touch-keyboard.js';
+import { createNativeKeyboard } from './input/native-keyboard.js';
+import { createNativeViewport } from './input/native-viewport.js';
+import { createMonitorControls } from './input/monitor-controls.js';
 import { createScroll } from './input/scroll.js';
 import { createLoop } from './runtime/loop.js';
 import { installFavicon } from './runtime/favicon.js';
@@ -44,9 +47,9 @@ const buffer = new TextBuffer(40, 25);
 const painter = new Painter(buffer, rom);
 const machine = createMachine();
 machine.logo = makeLogo(2);
-/** The on-screen keyboard, once `main` has built it; its echo strip mirrors
-    the prompt the panel covers, so every repaint offers it a resync. */
+/** Keep the native command field in sync with the BASIC prompt. */
 let kbd = null;
+let controls = null;
 const repaint = () => {
   repaintPage(buffer, machine, content);
   if (kbd) kbd.sync();
@@ -56,9 +59,16 @@ const repaint = () => {
 const canvas = document.getElementById('gl');
 const { renderer, scene, camera, rig, blit } = createRenderer(canvas);
 const texMonitor = await loadTexture(renderer, RES.monitor);
+const touch = matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
+const texNavigation = touch ? await loadTexture(renderer, RES['monitor-navigation']) : null;
+document.body.classList.toggle('touch', touch);
 
 const tube = createCrt(painter);
-const { monitor, power: ledPower, powerMat } = createMonitor(solveCase(MON.w, MON.h), texMonitor);
+const {
+  monitor,
+  power: ledPower,
+  powerMat,
+} = createMonitor(solveCase(MON.w, MON.h), texMonitor, texNavigation);
 rig.add(tube.screenMesh, tube.tubeBack, monitor, ledPower);
 
 const wall = createWall();
@@ -84,6 +94,7 @@ const run = (cmd) =>
 
 /* ----------------------------------------------------------------- layout */
 const { layout, view } = createLayout({
+  navigation: touch,
   renderer,
   camera,
   rig,
@@ -98,7 +109,6 @@ const { layout, view } = createLayout({
   repaint,
   relayoutDoc: () => nav.relayoutDoc(),
 });
-window.addEventListener('resize', layout);
 
 /* ------------------------------------------------------------ interaction */
 const setHint = createHint(document.getElementById('hint'));
@@ -111,6 +121,7 @@ function wake() {
 }
 
 const pointer = createPointer({
+  navigation: touch,
   canvas,
   camera,
   monitor,
@@ -144,9 +155,20 @@ const keys = createKeyboard({
   buffer,
 });
 
-/* Touch: one on-screen keyboard driven by the same `press`, and finger/wheel
-   scrolling for documents. Both are overlays — they never touch the layout. */
-kbd = createTouchKeyboard({ press: keys.press, machine, wake });
+const input = document.getElementById('command');
+const viewport = createNativeViewport({ canvas, input, layout });
+kbd = createNativeKeyboard({ input, keys, machine, wake, viewport });
+if (touch) {
+  const root = document.getElementById('monitor-controls');
+  root.hidden = false;
+  controls = createMonitorControls({
+    root,
+    keys,
+    wake,
+    input,
+    bounds: () => controlBounds({ camera, rig, canvas, view }),
+  });
+}
 pointer.attach({
   scroll: createScroll({ canvas, cellAt: pointer.cellAt, buffer, machine, snd: Snd }),
   openKeyboard: () => kbd.open(),
@@ -180,6 +202,7 @@ createLoop({
   repaint,
   view,
   mouse,
+  syncInput: () => controls?.sync(),
 }).start();
 
 installFavicon();

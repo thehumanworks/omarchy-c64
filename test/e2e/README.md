@@ -20,19 +20,20 @@ Report: `playwright-report/` (`--reporter=html`, never auto-opened).
 
 ## Suites
 
-| file                 | what it proves                                                                               |
-| -------------------- | -------------------------------------------------------------------------------------------- |
-| `boot.spec.js`       | WebGL starts, no errors, loader gone, `.sr` fallback nav intact                              |
-| `fallback.spec.js`   | with WebGL denied the body fails over to the 14 plain links                                  |
-| `visual.spec.js`     | golden screenshots at desktop / phone / ultrawide                                            |
-| `menu.spec.js`       | the tube's text: menu, docs, `HELP`, `POKE`, `SYS 64738`                                     |
-| `pointer.spec.js`    | hardware hover labels, clicking a menu row, third-party new tab                              |
-| `responsive.spec.js` | the grid reflows: narrow+tall on a phone, 40 columns when wide                               |
-| `content.spec.js`    | every first-party page opens, shows its title and first heading, scrolls, links are hittable |
-| `navigation.spec.js` | Tab cycling, names and prefixes, HELP/ABOUT/LIST/DIR, shortcuts, power switch, knob drag     |
-| `layout.spec.js`     | six viewports: grid bounds, rows fit, menu box intact; iPad goldens                          |
-| `touch.spec.js`      | the on-screen keyboard: opens on tap, no layout shift, fits, types; swipe and wheel scroll   |
-| `cursor.spec.js`     | the retro pointer: shows over the canvas, hand over links, hides on leave, touch echo        |
+| file                       | what it proves                                                                                    |
+| -------------------------- | ------------------------------------------------------------------------------------------------- |
+| `boot.spec.js`             | WebGL starts, no errors, loader gone, `.sr` fallback nav intact                                   |
+| `fallback.spec.js`         | with WebGL denied the body fails over to the 14 plain links                                       |
+| `visual.spec.js`           | golden screenshots at desktop / phone / ultrawide                                                 |
+| `menu.spec.js`             | the tube's text: menu, docs, `HELP`, `POKE`, `SYS 64738`                                          |
+| `pointer.spec.js`          | hardware hover labels, clicking a menu row, third-party new tab                                   |
+| `responsive.spec.js`       | the grid reflows: narrow+tall on a phone, 40 columns when wide                                    |
+| `content.spec.js`          | every first-party page opens, shows its title and first heading, scrolls, links are hittable      |
+| `navigation.spec.js`       | Tab cycling, names and prefixes, HELP/ABOUT/LIST/DIR, shortcuts, power switch, knob drag          |
+| `layout.spec.js`           | six viewports: grid bounds, rows fit, menu box intact; iPad goldens                               |
+| `touch.spec.js`            | native editing, viewport occlusion, stable geometry, link taps and swipe/wheel scroll             |
+| `monitor-controls.spec.js` | bezel rocker and Enter: navigation, repeat/cancel, boot, landscape and iPad hit targets           |
+| `cursor.spec.js`           | the retro pointer: shows over the canvas, hand over links, hides on mouse leave, persistent touch |
 
 ## The test hook
 
@@ -85,3 +86,20 @@ you just want to eyeball a change:
 ```sh
 node test/e2e/helpers/shots.mjs dist/index.html /tmp/shots
 ```
+
+## Native mobile keyboard verification
+
+Headless Chromium does not draw an iOS keyboard. `touch.spec.js` exercises real
+input events (including deletion, selection replacement and composition) and
+simulates visual viewport shrink/pan in phone portrait, landscape and iPad
+sizes. The `phone-native-input` golden shows the editable command field with
+simulated keyboard occlusion; it is not a screenshot of an OS keyboard.
+
+On an iPhone/iPad in Safari, tap READY, type `HELP`, edit the text,
+and submit with Go/Return. Confirm the native keyboard appears, the monitor
+stays anchored, and the command remains visible above the keyboard. Dismiss
+using the system control, reopen, rotate, and repeat. Blank tube taps, link taps and document
+swipes should not raise the keyboard. Use the bezel rocker to select or scroll,
+and Enter to open the selection or return to the menu. Holding the rocker
+repeats; lifting or cancelling stops it. No floating mobile hover badge appears. The smaller cursor must remain visible
+after lifting the finger and move with the next drag.

@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual"
+    />
     <title>Omarchy — Beautiful, Fun &amp; Opinionated Linux by DHH</title>
     <meta
       name="description"
@@ -27,9 +30,30 @@
     <canvas id="gl"></canvas>
     <div id="cursor" aria-hidden="true"></div>
     <div id="hint"></div>
+    <div id="monitor-controls" hidden>
+      <div id="monitor-nav" role="group" aria-label="Monitor navigation">
+        <button type="button" data-key="ArrowUp" aria-label="Move up"></button>
+        <button type="button" data-key="ArrowDown" aria-label="Move down"></button>
+        <button type="button" data-key="ArrowLeft" aria-label="Move left"></button>
+        <button type="button" data-key="ArrowRight" aria-label="Move right"></button>
+      </div>
+      <button id="monitor-enter" type="button" aria-label="Enter"></button>
+    </div>
 
-    <div id="kbd" hidden></div>
-    <button id="kbd-toggle" type="button" aria-label="Show keyboard">KBD</button>
+    <input
+      id="command"
+      type="text"
+      aria-label="BASIC command"
+      placeholder="READY."
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="characters"
+      spellcheck="false"
+      inputmode="text"
+      enterkeyhint="go"
+      maxlength="30"
+      tabindex="-1"
+    />
 
     <div id="loader">Loading<b>&nbsp;&#9608;</b></div>
 

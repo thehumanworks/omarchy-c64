@@ -1,47 +1,48 @@
-// Touch: the on-screen keyboard and scrolling a document with a finger.
-//
-// The suite runs in a touch-emulating context (hasTouch + isMobile), because
-// the panel only shows itself on a coarse pointer. The desktop describe at the
-// bottom proves the same build keeps the pill out of a mouse user's way.
-/* Callbacks in page.evaluate/addInitScript run in the browser, not in Node. */
+// Native input and stable monitor geometry. Headless browsers do not draw OS
+// keyboards: visual-viewport changes below simulate their occlusion explicitly.
 import { expect, test } from '@playwright/test';
-import { hasHook, openSite, skipBoot, state } from './helpers/page.js';
+import { openSite, skipBoot, state } from './helpers/page.js';
 import { probeHint, tubeRegion } from './helpers/probe.js';
 
 const PHONE = { width: 390, height: 844 };
-
-/** Count window resizes from the very first script the page runs. */
-async function countResizes(page) {
-  await page.addInitScript(() => {
-    window.__resizes = 0;
-    window.addEventListener('resize', () => (window.__resizes += 1));
-  });
-}
-
+const command = (page) => page.locator('#command');
 async function atMenu(page, viewport = PHONE) {
   await openSite(page, { viewport });
-  expect(await hasHook(page), 'window.__omarchy test hook is missing').toBe(true);
   await skipBoot(page);
 }
-
-const kbd = (page) => page.locator('#kbd');
-const pill = (page) => page.locator('#kbd-toggle');
-
-/** Tap an on-screen key by its printed label. */
-async function tapKey(page, label) {
-  await page
-    .locator('#kbd .kbd-key', { hasText: new RegExp(`^${label}$`) })
-    .first()
-    .dispatchEvent('pointerdown');
-}
-
-/** A point on the glass: the row the menu draws MANUAL on. */
 async function tubePoint(page, viewport = PHONE) {
   const hit = await probeHint(page, tubeRegion(viewport), 'OPEN MANUAL');
-  expect(hit, 'no point on the tube reported OPEN MANUAL').not.toBeNull();
+  expect(hit).not.toBeNull();
   return hit;
 }
-
+async function openInput(page, viewport = PHONE) {
+  const region = { ...tubeRegion(viewport), y0: Math.round(viewport.height * 0.72) };
+  const point = await probeHint(page, region, 'READY.');
+  expect(point, 'READY prompt was not found').not.toBeNull();
+  await page.touchscreen.tap(point.x, point.y);
+  await expect(command(page)).toBeFocused();
+}
+async function mockViewport(page) {
+  await page.addInitScript(() => {
+    window.__viewport = Object.assign(new EventTarget(), {
+      width: innerWidth,
+      height: innerHeight,
+      offsetTop: 0,
+      offsetLeft: 0,
+      scale: 1,
+    });
+    Object.defineProperty(window, 'visualViewport', { value: window.__viewport });
+  });
+}
+async function occlude(page, height, offsetTop = 0) {
+  await page.evaluate(
+    (v) => {
+      Object.assign(window.__viewport, v);
+      window.__viewport.dispatchEvent(new Event('resize'));
+    },
+    { height, offsetTop },
+  );
+}
 /** A finger drag over the tube, dispatched through CDP so it is a real touch. */
 async function swipe(page, from, dy, steps = 8) {
   const cdp = await page.context().newCDPSession(page);
@@ -60,90 +61,106 @@ async function swipe(page, from, dy, steps = 8) {
 test.describe('touch device', () => {
   test.use({ hasTouch: true, isMobile: true, viewport: PHONE });
 
-  test('the keyboard pill shows, and opening it shifts nothing', async ({ page }) => {
-    await countResizes(page);
+  test('native typing, deletion, selection replacement and submission work once', async ({
+    page,
+  }) => {
     await atMenu(page);
-    await expect(pill(page)).toBeVisible();
-    await expect(kbd(page)).toBeHidden();
-
-    const before = await page.locator('#gl').boundingBox();
-    const gridBefore = await state(page);
-    const resizesBefore = await page.evaluate(() => window.__resizes);
-
-    await pill(page).dispatchEvent('pointerdown');
-    await expect(kbd(page)).toBeVisible();
-    await expect(page.locator('body')).toHaveClass(/\bkbd-open\b/);
-
-    const during = await page.locator('#gl').boundingBox();
-    const gridDuring = await state(page);
-    expect(during).toEqual(before);
-    expect([gridDuring.cols, gridDuring.rows]).toEqual([gridBefore.cols, gridBefore.rows]);
-
-    await pill(page).dispatchEvent('pointerdown');
-    await expect(kbd(page)).toBeHidden();
-    await expect(page.locator('body')).not.toHaveClass(/\bkbd-open\b/);
-
-    expect(await page.locator('#gl').boundingBox()).toEqual(before);
-    const after = await state(page);
-    expect([after.cols, after.rows]).toEqual([gridBefore.cols, gridBefore.rows]);
-    expect(await page.evaluate(() => window.__resizes)).toBe(resizesBefore);
-  });
-
-  test('tapping the tube opens the keyboard', async ({ page }) => {
-    await atMenu(page);
-    const hit = await tubePoint(page);
-    await page.touchscreen.tap(hit.x, hit.y);
-    await expect(kbd(page)).toBeVisible();
-    await expect(page.locator('body')).toHaveClass(/\bkbd-open\b/);
-  });
-
-  test('the keys type, navigate and hide the panel', async ({ page }) => {
-    await atMenu(page);
-    await pill(page).dispatchEvent('pointerdown');
-    await expect(kbd(page)).toBeVisible();
-
-    await tapKey(page, '↓');
-    expect((await state(page)).sel).toBe(1);
-
-    await tapKey(page, '6');
+    await expect(page.locator('#kbd, #kbd-toggle, .kbd-key')).toHaveCount(0);
+    await openInput(page);
+    await page.keyboard.insertText('helpx');
+    expect((await state(page)).input).toBe('HELPX');
+    await page.keyboard.press('Backspace');
+    expect((await state(page)).input).toBe('HELP');
+    await command(page).evaluate((el) => el.select());
+    await page.keyboard.insertText('6');
     expect((await state(page)).input).toBe('6');
-    await expect(page.locator('#kbd-echo')).toContainText('READY. 6');
-
-    await tapKey(page, 'RETURN');
-    await expect.poll(async () => (await state(page)).page).toBe('doc');
-    expect((await state(page)).doc.key).toBe('NEWS');
-
-    await tapKey(page, 'RUN/STOP');
-    await expect.poll(async () => (await state(page)).page).toBe('menu');
-
-    await tapKey(page, '▼');
-    await expect(kbd(page)).toBeHidden();
+    await page.keyboard.press('Enter');
+    await expect.poll(async () => (await state(page)).doc?.key).toBe('NEWS');
+    expect((await state(page)).input).toBe('');
+    await expect(command(page)).not.toBeFocused();
+    await openInput(page);
+    await page.keyboard.insertText('HELP');
+    await page.keyboard.press('Escape');
+    expect((await state(page)).page).toBe('menu');
+    expect((await state(page)).input).toBe('');
+    await expect(command(page)).not.toBeFocused();
   });
 
-  test('a swipe scrolls a document and does not follow a link', async ({ page }) => {
+  test('composition is not overwritten by repaint and paste remains bounded', async ({ page }) => {
+    await atMenu(page);
+    await openInput(page);
+    await command(page).dispatchEvent('compositionstart');
+    await command(page).evaluate((el) => {
+      el.value = 'help';
+      el.dispatchEvent(new InputEvent('input', { data: 'help', isComposing: true }));
+    });
+    await page.waitForTimeout(200);
+    await expect(command(page)).toHaveValue('help');
+    expect((await state(page)).input).toBe('');
+    await command(page).dispatchEvent('compositionend');
+    expect((await state(page)).input).toBe('HELP');
+    await command(page).fill('a'.repeat(40));
+    expect((await state(page)).input).toBe('A'.repeat(30));
+  });
+
+  test('a swipe scrolls without opening input or following links', async ({ page }) => {
     await atMenu(page);
     const hit = await tubePoint(page);
-    await page.keyboard.type('1', { delay: 25 });
+    await page.keyboard.type('1');
     await page.keyboard.press('Enter');
-    await expect.poll(async () => (await state(page)).page).toBe('doc');
-    expect((await state(page)).doc.key).toBe('MANUAL');
-
+    await expect.poll(async () => (await state(page)).doc?.key).toBe('MANUAL');
     await swipe(page, hit, -220);
     await expect.poll(async () => (await state(page)).doc.off).toBeGreaterThan(0);
     const off = (await state(page)).doc.off;
-    expect((await state(page)).page, 'a drag must not launch a link').toBe('doc');
-    await expect(kbd(page), 'a drag must not open the keyboard').toBeHidden();
-
+    await expect(command(page)).not.toBeFocused();
     await swipe(page, hit, 220);
     await expect.poll(async () => (await state(page)).doc.off).toBeLessThan(off);
+    expect((await state(page)).doc.key).toBe('MANUAL');
   });
 
-  test('a plain tap on a doc row still follows the link', async ({ page }) => {
+  test('link taps open the page without summoning a keyboard', async ({ page }) => {
     await atMenu(page);
     const hit = await tubePoint(page);
     await page.touchscreen.tap(hit.x, hit.y);
-    await expect.poll(async () => (await state(page)).page).toBe('doc');
-    expect((await state(page)).doc.key).toBe('MANUAL');
+    await expect.poll(async () => (await state(page)).doc?.key).toBe('MANUAL');
+    await expect(command(page)).not.toBeFocused();
+  });
+
+  test('window-height changes do not reflow typing; rotation still works', async ({ page }) => {
+    await atMenu(page);
+    const before = await page.locator('#gl').boundingBox();
+    const grid = await state(page);
+    await openInput(page);
+    await page.setViewportSize({ width: 390, height: 500 });
+    expect(await page.locator('#gl').boundingBox()).toEqual(before);
+    const during = await state(page);
+    expect([during.cols, during.rows]).toEqual([grid.cols, grid.rows]);
+    const field = await command(page).boundingBox();
+    expect(field.y + field.height).toBeLessThanOrEqual(500);
+    await command(page).evaluate((el) => el.blur());
+    expect(await page.locator('#gl').boundingBox()).toEqual(before);
+    await page.setViewportSize(PHONE);
+    expect(await page.locator('#gl').boundingBox()).toEqual(before);
+    await openInput(page);
+    await page.setViewportSize({ width: 844, height: 390 });
+    await expect(command(page)).not.toBeFocused();
+    await expect.poll(async () => (await page.locator('#gl').boundingBox()).width).toBe(844);
+    expect((await page.locator('#gl').boundingBox()).height).toBe(390);
+  });
+
+  test('a cancelled gesture does not open native input', async ({ page }) => {
+    await atMenu(page);
+    await page.locator('#gl').dispatchEvent('pointerdown', {
+      pointerType: 'touch',
+      pointerId: 9,
+      clientX: 195,
+      clientY: 186,
+    });
+    await page
+      .locator('#gl')
+      .dispatchEvent('pointercancel', { pointerType: 'touch', pointerId: 9 });
+    await page.locator('#gl').dispatchEvent('pointerup', { pointerType: 'touch', pointerId: 9 });
+    await expect(command(page)).not.toBeFocused();
   });
 });
 
@@ -152,44 +169,40 @@ for (const [name, viewport] of Object.entries({
   landscape: { width: 844, height: 390 },
   ipad: { width: 820, height: 1180 },
 })) {
-  test.describe(`the panel fits a ${name} screen`, () => {
+  test.describe(`native keyboard viewport on ${name}`, () => {
     test.use({ hasTouch: true, isMobile: true });
-
-    test('inside the viewport', async ({ page }) => {
+    test('canvas and grid stay stable while input stays above keyboard', async ({ page }) => {
+      await mockViewport(page);
       await atMenu(page, viewport);
-      await pill(page).dispatchEvent('pointerdown');
-      await expect(kbd(page)).toBeVisible();
-      const box = await kbd(page).boundingBox();
-      expect(box.x).toBeGreaterThanOrEqual(0);
+      const before = await page.locator('#gl').boundingBox();
+      const grid = await state(page);
+      await openInput(page, viewport);
+      const visible = Math.round(viewport.height * 0.55);
+      await occlude(page, visible);
+      const box = await command(page).boundingBox();
       expect(box.y).toBeGreaterThanOrEqual(0);
-      expect(box.x + box.width).toBeLessThanOrEqual(viewport.width + 0.5);
-      expect(box.y + box.height).toBeLessThanOrEqual(viewport.height + 0.5);
-      // every key drawn, none clipped away by the max-height
-      expect(await page.locator('#kbd .kbd-key').count()).toBe(51);
+      expect(box.y + box.height).toBeLessThanOrEqual(visible);
+      expect(await page.locator('#gl').boundingBox()).toEqual(before);
+      const during = await state(page);
+      expect([during.cols, during.rows]).toEqual([grid.cols, grid.rows]);
+      await page.keyboard.insertText('HELP');
+      if (name === 'portrait') await expect(page).toHaveScreenshot('phone-native-input.png');
+      // Browser panning: keep the monitor anchored to the visible top.
+      await occlude(page, visible, 70);
+      const panned = await page.locator('#gl').boundingBox();
+      expect(panned.y - 70).toBe(before.y);
+      expect(panned.height).toBe(before.height);
+      await command(page).evaluate((el) => el.blur());
+      await occlude(page, viewport.height);
+      expect(await page.locator('#gl').boundingBox()).toEqual(before);
+      await openInput(page, viewport);
+      await expect(command(page)).toHaveValue('HELP');
     });
   });
 }
 
-test.describe('phone with the keyboard open looks right', () => {
-  test.use({ hasTouch: true, isMobile: true, viewport: PHONE });
-
-  test('golden', async ({ page }) => {
-    await atMenu(page);
-    await pill(page).dispatchEvent('pointerdown');
-    await expect(kbd(page)).toBeVisible();
-    await expect(page).toHaveScreenshot('phone-keyboard.png');
-  });
-});
-
 test.describe('desktop', () => {
   test.use({ hasTouch: false, viewport: { width: 1280, height: 800 } });
-
-  test('keeps the pill and the panel out of the way', async ({ page }) => {
-    await atMenu(page, { width: 1280, height: 800 });
-    await expect(pill(page)).toBeHidden();
-    await expect(kbd(page)).toBeHidden();
-  });
-
   test('the wheel scrolls a document', async ({ page }) => {
     await atMenu(page, { width: 1280, height: 800 });
     const hit = await probeHint(page, tubeRegion({ width: 1280, height: 800 }), 'OPEN MANUAL');

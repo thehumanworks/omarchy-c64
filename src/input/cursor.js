@@ -1,6 +1,6 @@
 /**
  * The retro pointer: a 1-bit arrow sprite drawn over the monitor in place of
- * the OS cursor, and a short-lived echo of where a finger touched the tube.
+ * the OS cursor, and a persistent pointer at the last finger position.
  * Owns the `#cursor` element and, while the sprite is up, `canvas.style.cursor`.
  * Reads `canvas.dataset.pointer` (set by `input/pointer.js`) to pick its shape.
  * Imports nothing.
@@ -51,7 +51,6 @@ const HAND = [
 
 const FILL = '#ffffff'; /* C64 white */
 const LINE = '#2e2c9b'; /* C64 blue */
-const TOUCH_MS = 700;
 
 /** One `<rect>` per run of identical cells, so the SVG stays small. */
 function rects(rows) {
@@ -84,9 +83,9 @@ const SHAPES = {
   hand: { url: sprite(HAND), hot: [3, 0] },
 };
 
-/** CSS pixels per source pixel (2, or 3 on coarse-pointer screens). */
+/** CSS pixels per source pixel; the same compact sprite on mouse and touch. */
 function scale(s) {
-  if (!s.k) s.k = s.el.offsetWidth / ARROW[0].length || 2;
+  if (!s.k) s.k = s.el.offsetWidth / ARROW[0].length || 1.5;
   return s.k;
 }
 
@@ -100,8 +99,15 @@ function draw(s) {
     s.el.classList.toggle('hand', name === 'hand');
   }
   const k = scale(s);
+  const vv = window.visualViewport;
+  const left = vv?.offsetLeft || 0;
+  const top = vv?.offsetTop || 0;
   const [hx, hy] = SHAPES[name].hot;
-  s.el.style.transform = `translate3d(${s.x - hx * k}px, ${s.y - hy * k}px, 0) scale(var(--cs, 1))`;
+  const right = left + (vv?.width || window.innerWidth) - s.el.offsetWidth;
+  const bottom = top + (vv?.height || window.innerHeight) - s.el.offsetHeight;
+  const x = Math.max(left, Math.min(s.x - hx * k, right));
+  const y = Math.max(top, Math.min(s.y - hy * k, bottom));
+  s.el.style.transform = `translate3d(${x}px, ${y}px, 0) scale(var(--cs, 1))`;
 }
 
 function queue(s) {
@@ -109,7 +115,6 @@ function queue(s) {
 }
 
 function hide(s) {
-  clearTimeout(s.timer);
   s.el.classList.remove('on', 'down');
   s.canvas.style.cursor = '';
 }
@@ -123,24 +128,24 @@ const phantom = (e) => e.pointerType !== 'touch' && e.clientX === 0 && e.clientY
 
 function onMove(s, e) {
   if (phantom(e)) return;
+  s.touch = e.pointerType === 'touch';
   s.x = e.clientX;
   s.y = e.clientY;
   // Place it at once the first time, so it never appears at its last position.
   if (!s.el.classList.contains('on')) draw(s);
   queue(s);
   s.el.classList.add('on');
-  clearTimeout(s.timer);
   if (e.pointerType !== 'touch') {
     s.canvas.style.cursor = 'none';
     return;
   }
-  s.timer = setTimeout(() => hide(s), TOUCH_MS);
+  s.canvas.style.cursor = '';
 }
 
 /** `deps` is `{ canvas, el }`. Returns `{ destroy }`. */
 export function createCursor({ canvas, el }) {
   if (!el) return { destroy: () => {} };
-  const s = { canvas, el, x: 0, y: 0, k: 0, raf: 0, timer: 0, shape: '' };
+  const s = { canvas, el, x: 0, y: 0, k: 0, raf: 0, touch: false, shape: '' };
   const off = [];
   const on = (target, type, fn) => {
     target.addEventListener(type, fn);
@@ -152,15 +157,42 @@ export function createCursor({ canvas, el }) {
     onMove(s, e);
     el.classList.add('down');
   });
+  const controls = document.getElementById('monitor-controls');
+  if (controls) {
+    for (const event of ['pointerdown', 'pointermove']) {
+      on(controls, event, (e) => {
+        canvas.dataset.pointer = 'link';
+        onMove(s, e);
+        if (event === 'pointerdown') el.classList.add('down');
+      });
+    }
+  }
   on(window, 'pointerup', () => el.classList.remove('down'));
-  on(canvas, 'pointerleave', () => hide(s));
-  on(window, 'blur', () => hide(s));
+  on(window, 'pointercancel', () => el.classList.remove('down'));
+  on(canvas, 'pointerleave', (e) => {
+    if (e.pointerType !== 'touch' && !s.touch) hide(s);
+  });
+  on(window, 'blur', () => {
+    if (!s.touch) hide(s);
+  });
   on(window, 'resize', () => {
     s.k = 0;
+    queue(s);
   });
+  if (window.visualViewport) {
+    on(window.visualViewport, 'resize', () => queue(s));
+    on(window.visualViewport, 'scroll', () => queue(s));
+  }
   on(document, 'visibilitychange', () => {
-    if (document.hidden) hide(s);
+    if (document.hidden && !s.touch) hide(s);
   });
+  if (window.matchMedia('(pointer: coarse)').matches) {
+    onMove(s, {
+      pointerType: 'touch',
+      clientX: window.innerWidth / 2,
+      clientY: window.innerHeight / 2,
+    });
+  }
   return {
     destroy() {
       hide(s);

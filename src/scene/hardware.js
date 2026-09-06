@@ -18,6 +18,8 @@ function hardwareMaterial(map, o = {}) {
   return new THREE.ShaderMaterial({
     uniforms: {
       map: { value: map },
+      navigationMap: { value: o.navigation || map },
+      uNavigation: { value: o.navigation ? 1 : 0 },
       uAmbient: { value: o.ambient !== undefined ? o.ambient : 0.26 },
       uGlow: { value: new THREE.Color(0.3, 0.3, 0.7) },
       uAmount: { value: 0 },
@@ -51,8 +53,8 @@ function ledMesh(mat, size) {
 }
 
 /** The case mesh plus its power LED, ready to be added to the rig. */
-export function createMonitor(caseState, texture) {
-  const mat = hardwareMaterial(texture, { ambient: 0.235, fall: 0.85, top: 0.06 });
+export function createMonitor(caseState, texture, navigation = null) {
+  const mat = hardwareMaterial(texture, { ambient: 0.235, fall: 0.85, top: 0.06, navigation });
   const monitor = new THREE.Mesh(buildCaseGeometry(caseState), mat);
   monitor.position.set(0, 0, 0);
   monitor.renderOrder = 2;

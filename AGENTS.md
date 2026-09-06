@@ -97,13 +97,17 @@ add its help line to `content/strings.json`, add a case to
 **Change what the menu links to.** `content/menu.json`. Labels with a matching
 `content/pages/<LABEL>.json` open on the tube; anything else opens a tab.
 
-**Change the on-screen keyboard.** The key rows and the control row are the
-two tables at the top of `src/input/touch-keyboard.js`; each entry is a label
-plus the key name `createKeyboard`'s `press()` understands, so a new key needs
-no new behaviour. Its look is the block at the end of `site/styles.css` (one
-20-column grid per row). Never add an `<input>`: the panel must not raise the
-native soft keyboard. Prove it with `npx playwright test test/e2e/touch.spec.js`
-and look at the `phone-keyboard` golden.
+**Change mobile input.** The bezel rocker and Enter button in
+`src/input/monitor-controls.js` handle normal touch navigation without a keyboard.
+Their artwork and projection are documented in `docs/MOBILE-CONTROLS.md`.
+For optional typing, tap READY to use the iPhone/iPad system keyboard through the real
+`#command` input in `site/index.html` and `src/input/native-keyboard.js`.
+Never implement a custom keyboard or restore the KBD toggle. Preserve native
+selection, paste and composition. `src/input/native-viewport.js` keeps the
+canvas geometry stable and the command visible above the keyboard. Prove it
+with `npx playwright test test/e2e/touch.spec.js` and inspect the
+`phone-native-input` golden. Headless emulation cannot show the OS keyboard:
+report physical-device verification separately.
 
 **Tweak the CRT look.** `src/scene/shaders/*.js` hold the GLSL, `src/scene/crt.js`
 the uniforms and defaults, `src/scene/post.js` the bloom and final grade. Every

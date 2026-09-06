@@ -125,6 +125,7 @@ export function createLoop(deps) {
     stepGlow(L, dt, t);
     stepCamera(L, dt, t);
     L.post.render(L.scene, L.camera, t);
+    L.syncInput?.();
   }
 
   return { start: frame };
