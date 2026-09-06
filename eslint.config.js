@@ -15,7 +15,9 @@ const SIZE_LIMITS = {
 
 const CORRECTNESS = {
   eqeqeq: ['error', 'always'],
-  curly: ['error', 'multi-line'],
+  // No `curly`: its 'multi-line' mode ping-pongs with prettier (prettier wraps a
+  // long one-line `if`, curly then demands braces) and 'all' is pure style.
+  // Prettier owns layout; eslint owns meaning.
   'no-var': 'error',
   'prefer-const': 'error',
   'no-shadow': 'error',
