@@ -22,12 +22,15 @@ export default defineConfig({
   workers: 1, // software GL is CPU-heavy: one browser at a time, everywhere
   forbidOnly: CI,
   retries: CI ? 1 : 0,
-  timeout: 60_000,
+  // A 2560x800 WebGL capture under SwiftShader on a 2-core CI runner takes
+  // several seconds, and toHaveScreenshot needs two of them to settle.
+  timeout: 120_000,
   reporter: [['list'], ['html', { open: 'never' }]],
   // Goldens are platform independent on purpose: the same files are compared on
   // macOS dev machines and on Linux CI, hence no {platform} in the path.
   snapshotPathTemplate: 'test/e2e/__screenshots__/{testFilePath}/{arg}{ext}',
   expect: {
+    timeout: 45_000,
     // The CRT shader paints animated film grain, so a pixel-exact match is not a
     // thing. The tolerance catches layout and colour regressions, not noise.
     toHaveScreenshot: { maxDiffPixelRatio: 0.05, threshold: 0.3, animations: 'disabled' },
