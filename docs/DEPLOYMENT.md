@@ -14,13 +14,17 @@ configuration: CI builds the file and uploads it.
 ```
 merge to main
    └─ .github/workflows/deploy.yml
-        ├─ lint, format:check, test, build, test:e2e   (must all pass)
+        ├─ affected checks, or full gate when required
         └─ npx wrangler pages deploy dist --project-name omarchy-website --branch main
              └─ Cloudflare Pages  →  omarchy.thehuman.sh
 ```
 
-Nothing ships that has not passed the full suite against the merge commit. The
-workflow uses `concurrency: production` with `cancel-in-progress: false`, so
+Nothing ships without the selected checks passing against the pushed commit.
+Narrow push selection requires a successful production workflow for the exact
+previous SHA; missing evidence, shared inputs and manual runs use the full gate.
+Docs/tooling-only changes skip deployment when a verified affected plan proves
+the page is unchanged; a full fallback or manual run still builds and deploys. See
+[CI.md](CI.md) for the coverage map and fail-closed rules. The workflow uses `concurrency: production` with `cancel-in-progress: false`, so
 deploys queue rather than race, and the deployment URL is printed into the job
 summary.
 
@@ -30,10 +34,12 @@ subdomain and never touches the live site.
 
 ## Pull-request previews
 
-[`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs the same verify
-steps on every pull request and on every push to a non-`main` branch. On pull
-requests it then deploys with `--branch <head branch>` and posts (or updates) a
-single PR comment with the preview URL. Superseded runs are cancelled.
+[`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs affected verification
+on every pull request; manual dispatch runs the full suite for any branch.
+Same-repository pull requests that build a page deploy the verified artifact
+with `--branch <head branch>` and post (or update) a single PR comment with the
+preview URL. Affected docs/tooling-only plans skip the preview. Superseded runs are
+cancelled; duplicate branch-push runs have been removed.
 
 ## Secrets
 
@@ -75,6 +81,10 @@ fnox run -- sh -c 'gh secret set CLOUDFLARE_ACCOUNT_ID --body "$CLOUDFLARE_ACCOU
 Verify by re-running the latest CI job, not by deploying to production.
 
 ## Manual deploy
+
+The GitHub **Deploy** workflow can be dispatched only for `main` and always
+runs full verification. Use the **CI** workflow's dispatch for other branches;
+it verifies without publishing to production.
 
 Only for emergencies, or when CI itself is broken. It publishes whatever is in
 your local `dist/`, so build first:

@@ -1,14 +1,9 @@
-# Production deploy: push to main -> verify -> Cloudflare Pages -> omarchy.thehuman.sh
-#
-# The verify steps are the same ones ci.yml runs on the pull request. They are
-# repeated here on purpose: main is what the public sees, so nothing ships
-# without a green run of the real suite against the merge commit.
-#
-# Only the `--branch main` deployment is production. Every other branch name
-# (see ci.yml) produces a preview.
+# Production checks affected components only from a verified previous release.
+# Missing history, shared inputs and manual runs receive full verification.
 name: Deploy
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -20,6 +15,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read
 
 # bash -eo pipefail: a failing command behind `| tee` must fail the step.
 defaults:
@@ -29,6 +25,7 @@ defaults:
 jobs:
   deploy:
     name: Verify and deploy
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     environment:
@@ -37,6 +34,33 @@ jobs:
     steps:
       - name: Check out
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Require a successful run for the previous commit
+        id: baseline
+        uses: actions/github-script@v8
+        with:
+          script: |
+            let verified = false;
+            try {
+              const { pathToFileURL } = require('node:url');
+              const module = pathToFileURL(process.env.GITHUB_WORKSPACE + '/scripts/ci/baseline.mjs');
+              const { hasVerifiedBaseline } = await import(module.href);
+              if (context.eventName === 'push') {
+                const { data } = await github.rest.actions.listWorkflowRuns({
+                  ...context.repo,
+                  workflow_id: 'deploy.yml',
+                  head_sha: context.payload.before,
+                  status: 'success',
+                  per_page: 100,
+                });
+                verified = hasVerifiedBaseline(data.workflow_runs, context.payload.before);
+              }
+            } catch (error) {
+              core.warning('Previous verification could not be established; running full checks.');
+            }
+            core.setOutput('full', String(!verified));
 
       - name: Install tools from mise.toml
         uses: jdx/mise-action@v2
@@ -44,26 +68,35 @@ jobs:
           install_args: node
           cache: true
 
+      - name: Select affected checks
+        id: plan
+        env:
+          FULL: ${{ steps.baseline.outputs.full }}
+          BASE: ${{ github.event.before || '' }}
+        run: |
+          if [ "$FULL" != false ]; then
+            npm run ci:plan -- --full
+          else
+            npm run ci:plan -- --push-base "$BASE"
+          fi
+
       - name: Install dependencies
         run: npm ci
 
       - name: Install Chromium for Playwright
+        if: steps.plan.outputs.browser == 'true'
         run: npx playwright install --with-deps chromium
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Check formatting
-        run: npm run format:check
-
-      - name: Unit and build tests
-        run: npm run test
-
-      - name: Build
-        run: npm run build
-
-      - name: End-to-end tests
-        run: npm run test:e2e
+      - name: Run selected checks
+        env:
+          FULL: ${{ steps.baseline.outputs.full }}
+          BASE: ${{ github.event.before || '' }}
+        run: |
+          if [ "$FULL" != false ]; then
+            npm run check
+          else
+            npm run check:changed -- --push-base "$BASE"
+          fi
 
       - name: Upload Playwright report
         if: failure()
@@ -80,6 +113,7 @@ jobs:
       # are provided by 1Password through `fnox run --`.
       - name: Deploy to Cloudflare Pages
         id: deploy
+        if: steps.plan.outputs.build == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -95,6 +129,7 @@ jobs:
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
       - name: Summarise the deployment
+        if: steps.plan.outputs.build == 'true'
         env:
           DEPLOY_URL: ${{ steps.deploy.outputs.url }}
         run: |

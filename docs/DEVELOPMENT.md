@@ -46,6 +46,14 @@ Every command is an npm script. Use them; do not invent ad-hoc invocations.
 the npm scripts of the same name, so `mise tasks` lists everything worth running
 from a fresh clone without reading `package.json` first.
 
+### Affected-component checks
+
+`npm run check:changed -- --base origin/main` runs the conservative affected
+plan; `npm run ci:plan -- --base origin/main` prints it without executing checks.
+Missing or unknown inputs fall back to full. See [CI.md](CI.md) for exact
+coverage, push/PR range semantics and benchmark commands. `npm run check`
+remains the full local proof, and pre-push still runs the full browser suite.
+
 ### Sync flags
 
 `npm run sync` takes flags after `--`:

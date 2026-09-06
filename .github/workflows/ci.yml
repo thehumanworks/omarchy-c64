@@ -1,18 +1,10 @@
-# Pull-request and branch CI.
-#
-# `verify` runs exactly the checks `npm run check` runs locally, in the same
-# order, so a green run here means the same thing as a green run on a laptop.
-# `preview` then publishes the built page to a Cloudflare Pages preview branch
-# and leaves the URL as a PR comment.
-#
-# Production deploys live in deploy.yml and only happen on push to main.
+# Pull requests run once. Dispatch offers full verification for a branch.
+# Isolated docs/tooling changes need no Chromium or site preview.
 name: CI
 
 on:
   pull_request:
-  push:
-    branches-ignore:
-      - main
+  workflow_dispatch:
 
 # One run per ref. A new push supersedes the previous run.
 concurrency:
@@ -29,61 +21,10 @@ defaults:
 
 jobs:
   verify:
-    name: Verify
-    runs-on: ubuntu-latest
-    timeout-minutes: 40
-    steps:
-      - name: Check out
-        uses: actions/checkout@v5
-
-      # mise.toml is the single source of truth for the toolchain. Only node is
-      # installed here: the other tools it pins (1password, fnox, wrangler, the
-      # hook linters) are for local work, and CI gets its credentials from
-      # repository secrets instead.
-      - name: Install tools from mise.toml
-        uses: jdx/mise-action@v2
-        with:
-          install_args: node
-          cache: true
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Chromium for Playwright
-        run: npx playwright install --with-deps chromium
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Check formatting
-        run: npm run format:check
-
-      - name: Unit and build tests
-        run: npm run test
-
-      - name: Build
-        run: npm run build
-
-      - name: End-to-end tests
-        run: npm run test:e2e
-
-      - name: Upload Playwright report
-        if: failure()
-        uses: actions/upload-artifact@v5
-        with:
-          name: playwright-report
-          path: |
-            playwright-report/
-            test-results/
-          retention-days: 7
-          if-no-files-found: ignore
-
-      - name: Upload built page
-        uses: actions/upload-artifact@v5
-        with:
-          name: dist
-          path: dist/index.html
-          retention-days: 7
+    uses: ./.github/workflows/verify.yml
+    with:
+      full: ${{ github.event_name != 'pull_request' }}
+      base: ${{ github.event.pull_request.base.sha || '' }}
 
   # Advisory only. The copy on omarchy.org moves on its own schedule, so a
   # branch is not wrong because the upstream page changed under it; the weekly
@@ -93,6 +34,8 @@ jobs:
   # internet, so a network blip must never block a merge.
   content-fresh:
     name: Content freshness
+    needs: verify
+    if: needs.verify.outputs.freshness == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     continue-on-error: true
@@ -119,7 +62,7 @@ jobs:
   preview:
     name: Preview deploy
     needs: verify
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && needs.verify.outputs.built == 'true' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -138,8 +81,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
-        run: npm run build
+      - name: Download checked page
+        uses: actions/download-artifact@v5
+        with:
+          name: dist
+          path: dist
 
       # Cloudflare credentials come from repository secrets here. Locally the
       # same two variables are supplied by 1Password through `fnox run --`.
