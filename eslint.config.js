@@ -43,7 +43,9 @@ export default [
   importX.recommended,
   {
     files: ['**/*.{js,mjs}'],
-    languageOptions: { ecmaVersion: 2024, sourceType: 'module' },
+    /* `latest`, not a pinned year: the content layer uses import attributes
+       (`with { type: 'json' }`), which Node requires for JSON modules. */
+    languageOptions: { ecmaVersion: 'latest', sourceType: 'module' },
     rules: { ...SIZE_LIMITS, ...CORRECTNESS },
   },
   {
@@ -54,5 +56,10 @@ export default [
     files: ['build/**/*.{js,mjs}', 'test/**/*.{js,mjs}', '*.config.js', 'scripts/**/*.{js,mjs}'],
     languageOptions: { globals: { ...globals.node } },
     rules: { 'no-console': 'off', 'max-lines-per-function': 'off', 'max-nested-callbacks': 'off' },
+  },
+  {
+    /* e2e helpers run code inside the page through `page.evaluate`. */
+    files: ['test/e2e/**/*.{js,mjs}'],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
 ];
