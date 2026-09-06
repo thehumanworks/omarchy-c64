@@ -95,7 +95,7 @@ function stepCamera(L, dt, t) {
 
 /**
  * `deps` is `{ scene, camera, rig, blit, post, tube, monitor, wall, powerMat,
- * painter, buffer, machine, content, boot, repaint, view, mouse }`.
+ * painter, buffer, machine, content, boot, repaint, view, mouse, syncLayout }`.
  */
 export function createLoop(deps) {
   const L = {
@@ -111,6 +111,7 @@ export function createLoop(deps) {
 
   function frame() {
     requestAnimationFrame(frame);
+    L.syncLayout();
     const dt = Math.min(0.05, clock.getDelta());
     const t = clock.getElapsedTime();
     stepMachine(L, dt);

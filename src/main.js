@@ -105,8 +105,6 @@ const { layout, view } = createLayout({
   relayoutDoc: () => nav.relayoutDoc(),
 });
 
-window.addEventListener('resize', layout);
-
 /* ------------------------------------------------------------ interaction */
 const setHint = createHint(canvas);
 createCursor({ canvas, el: document.getElementById('cursor') });
@@ -194,6 +192,7 @@ createLoop({
   repaint,
   view,
   mouse,
+  syncLayout: layout,
   syncInput: () => controls?.sync(),
 }).start();
 

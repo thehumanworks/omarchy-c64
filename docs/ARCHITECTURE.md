@@ -129,6 +129,14 @@ content/   index.js loads and normalises content/*.json (uppercase, ASCII quotes
   types. A touch device starts with it visible; touching/dragging moves it to
   the finger position and release/cancel leaves it there. It is clamped to
   the visible viewport. Mouse leave still restores the OS pointer.
+- **Viewport synchronization** (`scene/layout.js`): before each render, the loop
+  checks the canvas's CSS width/height and capped device pixel ratio. Only a
+  changed tuple resizes the drawing buffer, post targets, camera and case/grid.
+  This catches dimensions or DPR settling after mobile orientation/resize
+  events without relying on their order. Zero-sized canvases defer layout.
+  The bezel hit targets then project through that frame's updated camera.
+  A changed text grid recreates the painter's GPU canvas texture as well as
+  resizing the persistence targets: uploaded texture dimensions are immutable.
 - **Test hook** (`runtime/test-hook.js`): installs `window.__omarchy` with
   `screenText()` → array of row strings, `state()` → `{ mode, page, sel, input,
 status, powered, cols, rows, border, bg, doc: { key, off } | null }`, and

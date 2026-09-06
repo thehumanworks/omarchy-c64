@@ -23,6 +23,7 @@ export function createLayout(deps) {
   const { renderer, camera, rig, tube, post, painter, buffer, machine } = deps;
   const view = { z: 3.5 };
   let caseState = solveCase(MON.w, MON.h);
+  let viewport = { w: 0, h: 0, dpr: 0 };
 
   /** Re-shape the character grid. Returns true when it actually changed. */
   function setGrid(cols, rows) {
@@ -69,10 +70,14 @@ export function createLayout(deps) {
     rig.position.set(0, caseState.oy, 0);
   }
 
+  /** Sample at the render boundary: orientation events can precede CSS/DPR. */
   function layout() {
     const w = renderer.domElement.clientWidth;
     const h = renderer.domElement.clientHeight;
+    if (w <= 0 || h <= 0) return;
     const dpr = Math.min(window.devicePixelRatio || 1, w * h > 2600000 ? 1.6 : 2);
+    if (w === viewport.w && h === viewport.h && dpr === viewport.dpr) return;
+    viewport = { w, h, dpr };
     renderer.setPixelRatio(dpr);
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
