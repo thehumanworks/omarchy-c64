@@ -88,6 +88,28 @@ local linters = new Mapping<String, Step> {
   }
 }
 
+// Is the committed copy still what omarchy.org says? `npm run sync:check` is a
+// dry run of the sync: it exits non-zero when a page, the menu or a source
+// would change. Scoped to the content and the sync code, so an ordinary commit
+// never pays for it, and check-only: the repair is `mise run sync`, which
+// rewrites editorial copy and has to be read by a human before it is committed.
+//
+// It is the only step that needs the network. Offline, skip it by name with
+// hk's own mechanism - never `--no-verify`:
+//
+//     HK_SKIP_STEPS=content-fresh git commit -m "..."
+//
+local const contentFresh: Step = new Step {
+  glob = List(
+    "content/pages/**/*.json",
+    "content/menu.json",
+    "content/sources.json",
+    "scripts/sync/**"
+  )
+  batch = false
+  check = "npm run sync:check"
+}
+
 hooks {
   // Runs on `git commit`. fix = true so prettier/eslint repair what they can
   // and hk re-stages the result; stash = "git" hides unstaged work so the
@@ -95,7 +117,9 @@ hooks {
   ["pre-commit"] {
     fix = true
     stash = "git"
-    steps = linters
+    steps = (linters) {
+      ["content-fresh"] = contentFresh
+    }
   }
 
   // Runs on `git push`. The expensive proof: a real bundle and the headless
@@ -114,7 +138,9 @@ hooks {
 
   // `hk check` - read-only, safe anywhere, what CI approximates.
   ["check"] {
-    steps = linters
+    steps = (linters) {
+      ["content-fresh"] = contentFresh
+    }
   }
 
   // `hk fix` - the same steps, allowed to rewrite files.

@@ -66,6 +66,9 @@ wrong, fix `hk.pkl`.
    ```sh
    npm run check    # lint, format, unit + build tests, bundle, e2e
    ```
+   If the change touches `content/`, `mise run sync:check` must also be clean —
+   the `content-fresh` hook runs it for you on commit, and offline you skip that
+   one step with `HK_SKIP_STEPS=content-fresh`, never `--no-verify`.
    For anything under `src/scene/**` or the shaders, also open the screenshots
    the visual e2e produces (or run `node test/e2e/helpers/shots.mjs`) and
    confirm by eye that the monitor still looks right.
