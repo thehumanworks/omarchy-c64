@@ -8,6 +8,7 @@
       "P",
       "If you believe you've found a security vulnerability in Omarchy, please tell the Omarchy Security Team privately so we have an opportunity to investigate and fix it before it is made public."
     ],
+    ["A", "Omarchy Security Team", "https://omarchy.org/teams/#security"],
     ["A", "security@omarchy.org", "mailto:security@omarchy.org?subject=Security%20report"],
     [
       "P",
@@ -26,6 +27,7 @@
       "P",
       "Eligibility for our security credits page depends on whether a report identifies a confirmed security vulnerability, not on its severity."
     ],
+    ["A", "security credits", "https://omarchy.org/security/credits/"],
     ["H2", "What to include"],
     ["P", "Give us enough information to understand and reproduce the issue:"],
     ["LI", "The affected component and Omarchy version."],
@@ -50,6 +52,7 @@
       "P",
       "Researchers who privately report a confirmed security vulnerability and give us the chance to ship a fix are thanked on the security credits page. Accepted improvements that don't cross a security boundary may still be credited in our release notes."
     ],
+    ["A", "security credits", "https://omarchy.org/security/credits/"],
     [
       "P",
       "Credits link to each reporter's X profile and show their avatar. For duplicate reports, only the first reporter is eligible for credit."

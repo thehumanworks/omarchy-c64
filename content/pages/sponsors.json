@@ -9,32 +9,41 @@
       "P",
       "The tiling Wayland compositor that has been at the heart of Omarchy since day one, and one of its three core technologies. The sponsorship lets Vaxry work on it without having to think about commercial development or fundraising - and it freed the existing Hyprperks program to be released for everyone, for free. The deal runs three years, with an option for another two, and starts October 10."
     ],
+    ["P", "Read the announcement - Hyprland by Vaxry"],
     [
       "A",
       "Read the announcement",
       "https://omarchy.org/news/2026/08/omacom-foundation-to-be-exclusive-hyprland-sponsor"
     ],
+    ["A", "Hyprland", "https://hypr.land/"],
+    ["A", "Vaxry", "https://x.com/vaxryy"],
     ["H2", "Quickshell"],
     ["KV", "Tier", "Premier"],
     [
       "P",
       "The desktop construction kit the Omarchy shell is built on: one long-running process drawing the bar, the menu, the notifications, the OSDs and the lock screen. It shipped in Quattro, and over a thousand plugins followed in the first week. Termed for three years out the gate."
     ],
+    ["P", "Read the announcement - Quickshell by outfoxxed"],
     [
       "A",
       "Read the announcement",
       "https://omarchy.org/news/2026/08/omacom-foundation-to-be-premier-quickshell-sponsor"
     ],
+    ["A", "Quickshell", "https://quickshell.org/"],
+    ["A", "outfoxxed", "https://x.com/outfoxxedd"],
     ["H2", "mise"],
     ["KV", "Tier", "Premier"],
     [
       "P",
       "The tool that manages the language runtimes and, just as importantly, ships every coding-agent CLI as a lazy-loading stub. A new harness is one command away instead of a packaging project - which is what keeps Omarchy moving at the pace agent tooling actually ships."
     ],
+    ["P", "Read the announcement - mise by jdx"],
     [
       "A",
       "Read the announcement",
       "https://omarchy.org/news/2026/08/omacom-foundation-to-be-premier-mise-sponsor"
-    ]
+    ],
+    ["A", "mise", "https://mise.jdx.dev/"],
+    ["A", "jdx", "https://x.com/jdxcode"]
   ]
 }
