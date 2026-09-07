@@ -33,7 +33,7 @@ Report: `playwright-report/` (`--reporter=html`, never auto-opened).
 | `navigation.spec.js`       | Tab cycling, names and prefixes, HELP/ABOUT/LIST/DIR, shortcuts, power switch, knob drag          |
 | `layout.spec.js`           | six viewports: grid bounds, rows fit, menu box intact; iPad goldens                               |
 | `touch.spec.js`            | no editable field or badges, stable touch geometry, link taps and swipe/wheel scroll              |
-| `monitor-controls.spec.js` | bezel rocker and Enter: navigation, repeat/cancel, boot, landscape and iPad hit targets           |
+| `monitor-controls.spec.js` | bezel rocker and Enter: navigation, repeat/cancel, no press effect while held, boot, hit targets  |
 | `cursor.spec.js`           | the retro pointer: shows over the canvas, hand over links, hides on mouse leave, persistent touch |
 
 `orientation.spec.js` also verifies sequential orientation/viewport changes

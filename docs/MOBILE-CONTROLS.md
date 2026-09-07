@@ -24,7 +24,10 @@ Desktop retains its original brightness/contrast/volume knobs.
   These coordinates are texels, projected through the case's **strip** bands,
   not its tube bands. `src/scene/control-bounds.js` owns the mapping.
 - `src/input/monitor-controls.js` overlays transparent native buttons on the
-  photographed controls, with at least 44px touch targets and press feedback.
+  photographed controls, with at least 44px touch targets. The overlays stay
+  invisible while held: no inset shadow, transform or other press effect is
+  drawn over the artwork. `data-direction` on the rocker only records the held
+  direction for repeat and tests.
   The render loop updates their positions after rendering so the camera's
   movement and rotation/resizing cannot detach the buttons from the artwork.
 
@@ -35,9 +38,11 @@ Desktop retains its original brightness/contrast/volume knobs.
 ## Verification
 
 Run `npm run check`. `monitor-controls.spec.js` exercises navigation without
-native input, repeat/cancellation, boot and touch target alignment.
+native input, repeat/cancellation, boot and touch target alignment, and holds
+each control to prove nothing is drawn over the artwork while pressed.
 `touch.spec.js` proves command text stays on the CRT without overlays, verifies
 stable layouts on portrait/landscape/iPad, and covers link taps and scrolling.
-Inspect `phone-monitor-controls.png`, `phone-cursor.png` and
-`phone-no-badges.png` after changing either the asset or its mapping.
+Inspect `phone-monitor-controls.png`, `phone-enter-held.png`,
+`phone-cursor.png` and `phone-no-badges.png` after changing either the asset
+or its mapping.
 Browser emulation does not replace physical iPhone/iPad interaction testing.

@@ -79,6 +79,45 @@ test.describe('mobile monitor hardware', () => {
     ).not.toBe('none');
   });
 
+  test('held controls draw no press effect over the artwork', async ({ page }) => {
+    await atMenu(page);
+    const surface = (id) =>
+      page.locator(id).evaluate((el) => {
+        const css = getComputedStyle(el);
+        return {
+          shadow: css.boxShadow,
+          transform: css.transform,
+          background: css.backgroundColor,
+          filter: css.filter,
+        };
+      });
+    const idle = {
+      shadow: 'none',
+      transform: 'none',
+      background: 'rgba(0, 0, 0, 0)',
+      filter: 'none',
+    };
+    const cdp = await page.context().newCDPSession(page);
+    const enter = await page.locator('#monitor-enter').boundingBox();
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchStart',
+      touchPoints: [{ x: enter.x + enter.width / 2, y: enter.y + enter.height / 2 }],
+    });
+    await expect(page.locator('#monitor-enter')).toHaveClass('');
+    expect(await surface('#monitor-enter')).toEqual(idle);
+    await expect(page).toHaveScreenshot('phone-enter-held.png');
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await expect.poll(async () => (await state(page)).doc?.key).toBe('MANUAL');
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchStart',
+      touchPoints: [await point(page, true)],
+    });
+    await expect(page.locator('#monitor-nav')).toHaveAttribute('data-direction', 'ArrowDown');
+    expect(await surface('#monitor-nav')).toEqual(idle);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchCancel', touchPoints: [] });
+    await cdp.detach();
+  });
+
   test('holding the rocker repeats and cancellation stops it', async ({ page }) => {
     await atMenu(page);
     const p = await point(page, true);

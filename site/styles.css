@@ -42,7 +42,9 @@ body.ready #gl {
   -webkit-touch-callout: none;
 }
 
-/* The artwork is in the WebGL bezel; these are its native hit targets. */
+/* The artwork is in the WebGL bezel; these are its native hit targets. They
+   never draw their own press feedback: the photographed hardware is the only
+   visible button surface. */
 #monitor-controls {
   visibility: hidden;
   pointer-events: none;
@@ -86,14 +88,8 @@ body.ready #gl {
 #monitor-nav [data-key='ArrowRight'] {
   clip-path: polygon(100% 0, 100% 100%, 50% 50%);
 }
-#monitor-nav[data-direction] {
-  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.6);
-}
 #monitor-enter {
   border-radius: 5px;
-}
-#monitor-enter.down {
-  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.7);
 }
 #monitor-controls button:focus-visible {
   outline: 2px solid #b9c0ff;
