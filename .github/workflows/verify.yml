@@ -1,4 +1,4 @@
-# PR verification, also callable in full mode for branch dispatch.
+# Build once; browser shards verify the same artifact on isolated runners.
 name: Verify components
 
 on:
@@ -10,11 +10,12 @@ on:
       base:
         type: string
         default: ''
+      push:
+        type: boolean
+        default: false
     outputs:
       built:
         value: ${{ jobs.verify.outputs.built }}
-      freshness:
-        value: ${{ jobs.verify.outputs.freshness }}
 
 permissions:
   contents: read
@@ -24,68 +25,118 @@ defaults:
     shell: bash
 
 jobs:
-  verify:
-    name: Verify
+  prepare:
+    name: Fast checks and build
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 10
     outputs:
-      built: ${{ steps.plan.outputs.build }}
-      freshness: ${{ steps.plan.outputs.freshness }}
+      build: ${{ steps.checks.outputs.build }}
+      browser: ${{ steps.checks.outputs.browser }}
+      shards: ${{ steps.checks.outputs.shards }}
+      shard_total: ${{ steps.checks.outputs.shard_total }}
     steps:
-      - name: Check out
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-
-      - name: Install tools from mise.toml
-        uses: jdx/mise-action@v2
+      - uses: jdx/mise-action@v2
         with:
           install_args: node
           cache: true
-
-      - name: Select affected checks
-        id: plan
+      - run: npm ci
+      - name: Select and run fast checks
+        id: checks
         env:
           FULL: ${{ inputs.full }}
           BASE: ${{ inputs.base }}
+          PUSH_RANGE: ${{ inputs.push }}
         run: |
           if [ "$FULL" = true ]; then
-            npm run ci:plan -- --full
+            npm run ci:prepare -- --full
+          elif [ "$PUSH_RANGE" = true ]; then
+            npm run ci:prepare -- --push-base "$BASE"
           else
-            npm run ci:plan -- --base "$BASE"
+            npm run ci:prepare -- --base "$BASE"
           fi
+      - name: Upload candidate page and exact check plan
+        if: steps.checks.outputs.build == 'true'
+        uses: actions/upload-artifact@v5
+        with:
+          name: candidate
+          path: |
+            dist/index.html
+            .cache/verification/plan.json
+          include-hidden-files: true
+          retention-days: 7
+          if-no-files-found: error
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Chromium for Playwright
-        if: steps.plan.outputs.browser == 'true'
-        run: npx playwright install --with-deps chromium
-
-      - name: Run selected checks
+  browser:
+    name: Browser ${{ matrix.shard }}/${{ needs.prepare.outputs.shard_total }}
+    needs: prepare
+    if: needs.prepare.outputs.browser == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.prepare.outputs.shards) }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: jdx/mise-action@v2
+        with:
+          install_args: node
+          cache: true
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - uses: actions/download-artifact@v5
+        with:
+          name: candidate
+          path: .
+      - name: Verify this shard against the candidate
         env:
-          FULL: ${{ inputs.full }}
-          BASE: ${{ inputs.base }}
-        run: |
-          if [ "$FULL" = true ]; then
-            npm run check
-          else
-            npm run check:changed -- --base "$BASE"
-          fi
-
-      - name: Upload Playwright report
+          SHARD: ${{ matrix.shard }}/${{ needs.prepare.outputs.shard_total }}
+        run: npm run ci:browser -- --shard "$SHARD"
+      - name: Preserve shard diagnostics
         if: failure()
         uses: actions/upload-artifact@v5
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.shard }}
           path: |
             playwright-report/
             test-results/
           retention-days: 7
           if-no-files-found: ignore
 
-      - name: Upload checked page
-        if: steps.plan.outputs.build == 'true'
+  verify:
+    # Keep the existing Verify check name as the aggregate gate.
+    name: Verify
+    needs: [prepare, browser]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      built: ${{ needs.prepare.outputs.build }}
+    steps:
+      - name: Require all selected checks
+        env:
+          FAST_RESULT: ${{ needs.prepare.result }}
+          NEEDS_BROWSER: ${{ needs.prepare.outputs.browser }}
+          BROWSER_RESULT: ${{ needs.browser.result }}
+        run: |
+          test "$FAST_RESULT" = success
+          if [ "$NEEDS_BROWSER" = true ]; then
+            test "$BROWSER_RESULT" = success
+          else
+            test "$NEEDS_BROWSER" = false
+            test "$BROWSER_RESULT" = skipped
+          fi
+      - name: Download the verified page
+        if: needs.prepare.outputs.build == 'true'
+        uses: actions/download-artifact@v5
+        with:
+          name: candidate
+          path: .
+      - name: Publish the checked artifact for deployment
+        if: needs.prepare.outputs.build == 'true'
         uses: actions/upload-artifact@v5
         with:
           name: dist

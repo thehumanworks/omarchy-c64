@@ -1,187 +1,118 @@
 # Architecture
 
-omarchy.org rebooted as a Commodore 64: a single HTML page that renders a
-Commodore 1702 monitor in WebGL and runs a 40-column "BASIC" UI on its tube.
-No framework, no server: plain HTML, CSS and ES modules, bundled by esbuild
-into one `dist/index.html` that Cloudflare Pages serves.
+The site is plain HTML, CSS and ES modules. `build/build.mjs` bundles the
+application, vendored three.js, styles and assets into `dist/index.html`.
+There is no server or runtime content fetch. The file works from `file://`.
+Read this map before editing `src/`; [AGENTS.md](../AGENTS.md) is the workflow
+entry point, and [Debugging](DEBUGGING.md) maps symptoms to focused tests.
 
-This file is the map. Read it before touching `src/`.
+## Contracts
 
-## Guiding rules
+- **Composition:** `src/main.js` creates shared objects once and injects
+  callbacks across layers. No module imports it or reaches back to its caller.
+- **Dependencies:** imports may stay within a layer or go down this order:
+  `runtime → input → scene → machine → screen → audio → text → content`.
+  `eslint.config.js` enforces the direction and rejects cycles. A new module
+  belongs in the layer owning its responsibility, not wherever imports are easiest.
+- **Core:** `text/`, `content/`, `machine/`, `screen/text-buffer.js` and
+  `scene/case.js` have no DOM or WebGL dependency. Browser effects enter through
+  callbacks. Lint checks their boundaries; the unit suite imports every core
+  module in plain Node. `audio/sid.js` and `screen/logo.js` also import safely
+  in Node, but their explicit initialization/drawing calls use browser APIs.
+- **Content:** tube copy lives in `content/*.json` and `content/pages/*.json`.
+  Only `src/content/index.js` loads it; consumers receive normalized `content`.
+  Site metadata, accessible fallback copy and control labels remain in
+  `site/index.html`; keep its duplicated links consistent when editing URLs.
+- **Cohesion:** split when responsibilities or reasons to change differ. Keep
+  related logic together and interfaces explicit. Lint retains complexity,
+  nesting and parameter checks; there are no mechanical line-count limits.
+- **Presentation:** preserve monitor artwork, CRT constants, boot timing,
+  palette, controls and copy unless explicitly changing them. Rendering changes
+  need screenshots inspected by eye, not just passing assertions.
 
-1. **Small files.** Lint enforces max 300 lines per file and 80 per function.
-   Never raise the limits; split the module instead. The point is that an
-   agent can read any one file in full without losing the rest of its context.
-2. **Content is data, code is code.** Everything editorial (menu entries, page
-   copy, ticker, hints, help text) lives in `content/*.json`. Code never
-   hard-codes copy. Changing what the site says must not require touching `src/`.
-3. **Pure core, thin shell.** Text layout, the character buffer, page
-   renderers, the command interpreter and the nine-slice case maths are pure
-   modules: importable in plain Node, no DOM or WebGL globals at import time.
-   The DOM and three.js are used freely by `src/main.js`, `src/screen/painter.js`,
-   `src/scene/**`, `src/input/**` and `src/runtime/**`. Two pure-layer modules
-   touch `document` inside functions only, never at import time:
-   `src/machine/navigate.js` (opening tabs and mailto links) and
-   `src/screen/logo.js` (drawing the wordmark on a canvas).
-4. **No import cycles** (lint-enforced). `main.js` is the composition root:
-   it creates the objects and wires callbacks. Modules do not reach up to
-   their callers.
-5. **One direction of data.** `content → machine state → text buffer → painter
-canvas → CRT shader → post-processing → screen`. Input events mutate machine
-   state; the render loop repaints.
-6. **Behaviour is verified, not assumed.** Pure modules have unit tests
-   (`node:test`); the built page has Playwright tests that boot it in headless
-   Chromium with software WebGL and read the tube's text back through
-   `window.__omarchy`.
+## Find the owner
 
-## Repository layout
+All application paths below are relative to `src/`. Read the owner first and
+follow only the imports or injected callbacks involved in the change.
 
-```
-AGENTS.md              how agents work here (CLAUDE.md points at it)
-docs/                  ARCHITECTURE (this), DEVELOPMENT, CONTENT, DEPLOYMENT
-content/               editorial data (JSON). See docs/CONTENT.md
-  menu.json            the 14 main-menu entries
-  shortcuts.json       extra typed names → URLs (DHH, HEY, ...)
-  strings.json         ticker, hints, taglines, ABOUT/LIST/HELP copy
-  pages/<key>.json     one file per first-party page shown on the tube
-assets/                binary inputs the build inlines (character ROM, webp)
-vendor/                third-party code we do not edit (three.js)
-site/                  index.html template + styles.css (DOM chrome only)
-src/                   the application (ES modules, see below)
-build/                 build.mjs: esbuild bundle + inline into the template
-test/unit              node:test suites for pure modules
-test/build             invariants on dist/index.html
-test/e2e               Playwright suites against dist/index.html
-dist/                  build output (git-ignored)
-```
+| Responsibility                             | Owner and interface                                                                                                     | Closest proof                         |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| Startup and wiring                         | `main.js`: screen → scene → machine → layout → input → loop                                                             | e2e boot, fallback                    |
+| Load page snapshots                        | `content/index.js`: `{ menu, shortcuts, strings, pages }`; static `PAGE_FILES` registry                                 | unit machine/content                  |
+| Character encoding, colors, wrapping, grid | `text/petscii.js`, `palette.js`, `wrap.js`, `grid.js`                                                                   | unit text                             |
+| Character memory                           | `screen/text-buffer.js`: `TextBuffer` owns cols/rows, chars/colors, cursor and drawing registers                        | unit screen                           |
+| Canvas text and wordmark                   | `screen/painter.js`: `Painter(buffer, rom)`; `screen/logo.js`: `makeLogo(px)`                                           | e2e visual, layout                    |
+| UI state and flash messages                | `machine/state.js`: `createMachine()`, `say(machine, text, color)`                                                      | unit machine                          |
+| Page repaint                               | `machine/repaint.js` dispatches `menu.js` / `doc.js`; `chrome.js` draws shared frame, prompt, ticker                    | unit menu, e2e content                |
+| Document layout                            | `machine/doc-lines.js`: page nodes → wrapped lines; `doc.js`: visible rows and hit boxes                                | unit doc-lines, e2e content           |
+| Typed commands                             | `machine/commands.js`: `exec(cmd, ctx)` matcher/handler table; `help.js`, `dir.js`, `text-page.js`                      | unit commands/help, e2e navigation    |
+| Route a selection or link                  | `machine/navigate.js`: `createNavigator({ buffer, machine, content, snd, repaint, links })`                             | unit navigate, e2e pointer/navigation |
+| Browser link effects                       | `runtime/links.js`: `browserLinks.newTab(url)` and `.mailto(url)`, injected into navigator by main                      | e2e navigation/pointer                |
+| Boot, power, maze                          | `machine/boot.js`, `power.js`, `maze.js`: state transitions and step functions                                          | e2e menu/navigation/monitor-controls  |
+| Sound                                      | `audio/sid.js`: `Snd`; calls no-op until `init()` creates the audio graph                                               | Node import, browser interaction      |
+| Renderer and photographed case             | `scene/renderer.js`, `hardware.js`, `textures.js`; `case.js` is pure nine-slice maths, `case-geometry.js` builds meshes | unit case, e2e visual                 |
+| CRT and post-processing                    | `scene/crt.js`: uniforms/persistence; `post.js`: bloom/final grade; `room.js`: wall; `shaders/*.js`: GLSL strings       | unit crt, e2e visual                  |
+| Responsive geometry                        | `scene/layout.js`: `{ layout, view }`; `control-bounds.js`: bezel projection                                            | unit layout, e2e orientation/layout   |
+| Physical keyboard                          | `input/keyboard.js`: `createKeyboard(deps)` returns `{ press }`, shared with touch hardware                             | e2e navigation/monitor-controls       |
+| Pointer and document scroll                | `input/pointer.js`, `pick.js`, `scroll.js`; pointer returns `{ mouse, cellAt, attach }` to wire scrolling               | e2e pointer/touch                     |
+| Bezel rocker and Enter                     | `input/monitor-controls.js`: `createMonitorControls({ root, keys, wake, bounds })` returns `{ sync }`                   | e2e monitor-controls/touch            |
+| Retro pointer and hover metadata           | `input/cursor.js`: pixel sprites; `hint.js`: `canvas.dataset.hint`, no visible badge                                    | e2e cursor/pointer                    |
+| Frame clock and presentation               | `runtime/loop.js`: `createLoop(deps).start()`; `favicon.js`: tab icon                                                   | e2e boot/visual/orientation           |
+| Diagnostic readback                        | `runtime/test-hook.js`: `installTestHook({ buffer, machine, boot })` exposes `window.__omarchy`                         | e2e hook assertions                   |
 
-## `src/` module map
+## Data and state flow
 
-Each directory is one layer. Arrows show allowed imports (only downward).
-
-```
-runtime/   loop.js (the animate tick), favicon.js, test-hook.js
-   ↓
-input/     pick.js (raycast the case and the tube), pointer.js (knobs, hover,
-           click and tap on tube text), keyboard.js (one `press()` every key
-           goes through), monitor-controls.js (bezel rocker and Enter), scroll.js (wheel and finger scrolling of
-           a document), hint.js (pointer-label metadata only), cursor.js (the pixel-art pointer sprite that
-           stands in for the OS cursor over the canvas; `pointer.js` tells it
-           which shape to use through `canvas.dataset.pointer`)
-   ↓
-scene/     renderer.js textures.js case.js case-geometry.js crt.js hardware.js
-           room.js post.js layout.js control-bounds.js
-           shaders/*.js  (each shader is one file exporting a GLSL string)
-   ↓
-machine/   state.js chrome.js menu.js doc.js doc-lines.js text-page.js
-           commands.js help.js dir.js navigate.js maze.js boot.js power.js
-           repaint.js
-   ↓
-screen/    text-buffer.js (pure: the C64 video RAM) painter.js (canvas + atlas) logo.js
-   ↓
-audio/     sid.js (Web Audio beeps; safe to import in Node, every call no-ops until init)
-   ↓
-text/      petscii.js (char → screen code) wrap.js (wrap, sentences, pretty) palette.js grid.js
-   ↓
-content/   index.js loads and normalises content/*.json (uppercase, ASCII quotes)
+```text
+committed JSON → normalized content → machine state → TextBuffer
+                                                       ↓
+input events → injected command/navigation callbacks   Painter canvas
+                                                       ↓
+                                      CRT persistence → post-processing → screen
 ```
 
-### Key objects
+`TextBuffer` owns grid size; do not introduce a second cols/rows authority.
+`machine` owns mode, selected page, selection, input, scroll and clickable hits.
+Page renderers receive `(buffer, machine, content)` and write the buffer and
+render-derived state such as hit boxes. They do not own DOM elements.
 
-- **`TextBuffer`** (`screen/text-buffer.js`): `cols`, `rows`, `chars`, `colors`,
-  cursor, pen/bg/border registers, `overlay` and `rasterBands` hooks. Methods:
-  `clear`, `clearRows`, `put`, `at`, `centre`, `scrollUp`, `nl`, `type`,
-  `resize(cols, rows)`, `line(r)` / `text()` (read back as strings, for tests).
-  Owns the grid size: nothing else stores `COLS`/`ROWS`.
-- **`Painter`** (`screen/painter.js`): draws a `TextBuffer` onto a canvas with
-  the character ROM atlas. `width`/`height` in pixels derive from the buffer.
-- **`machine`** (`machine/state.js`): the UI state (`mode`, `page`, `sel`,
-  `input`, `status`, `doc`, `hits`, `powered`, ...). Plain object, one instance.
-- **Page renderers** (`machine/menu.js`, `doc.js`, `text-page.js`, `chrome.js`)
-  take `(buffer, machine, content)` and only write into the buffer.
-- **`exec(cmd, ctx)`** (`machine/commands.js`): a table of `[matcher, handler]`
-  rows walked top to bottom. A matcher is a `RegExp`, a list of strings and
-  regexes, or a function. `ctx` carries the injected side effects —
-  `{ buffer, machine, content, snd, coldStart, startMaze, launch, openLink }` —
-  so the interpreter runs in plain Node with no DOM. (`launch` stands in for
-  the planned `openDoc`: whether a menu entry opens on the tube or in a tab is
-  `navigate.js`'s decision, not the interpreter's. `say` is imported from
-  `machine/state.js` rather than injected, because it only writes state.)
-- **Case nine-slice**: `scene/case.js` is the pure maths (`solveBands`,
-  `solveCase`, `bandAt`, `mapX`, `mapY`) and is unit-tested; the three.js
-  builder `buildCaseGeometry` lives next door in `scene/case-geometry.js` so
-  `case.js` stays importable in Node.
-- **`createKeyboard`** (`input/keyboard.js`): returns `{ press }`.
-  Physical keydown and monitor hardware share the same command handler.
-  Command text is drawn on the CRT; there is no HTML input or mobile keyboard.
-- **`createMonitorControls`** (`input/monitor-controls.js`): touch devices get
-  an imagegen-authored rocker and Enter button on the lower bezel. Native DOM
-  buttons project onto their photographed positions using `control-bounds.js`,
-  tracking the same camera and nine-slice as the monitor. Each control is at
-  least 44 CSS pixels; the knob supports directional taps, drags and holding.
-  Cancellation/blur stops repeat. The render loop syncs their bounds even
-  during boot or while powered off. Enter opens the selection or returns from
-  a document; the rocker uses the existing arrow-key navigation and scrolling.
-  There are no floating hover badges on any device. Desktop keeps the original photographed
-  brightness/contrast/volume controls. See [MOBILE-CONTROLS.md](MOBILE-CONTROLS.md)
-  for the generated asset, prompt, mapping and visual verification.
-- **`createCursor`** (`input/cursor.js`): one compact sprite for both pointer
-  types. A touch device starts with it visible; touching/dragging moves it to
-  the finger position and release/cancel leaves it there. It is clamped to
-  the visible viewport. Mouse leave still restores the OS pointer.
-- **Viewport synchronization** (`scene/layout.js`): before each render, the loop
-  checks the canvas's CSS width/height and capped device pixel ratio. Only a
-  changed tuple resizes the drawing buffer, post targets, camera and case/grid.
-  This catches dimensions or DPR settling after mobile orientation/resize
-  events without relying on their order. Zero-sized canvases defer layout.
-  The bezel hit targets then project through that frame's updated camera.
-  A changed text grid recreates the painter's GPU canvas texture as well as
-  resizing the persistence targets: uploaded texture dimensions are immutable.
-- **Test hook** (`runtime/test-hook.js`): installs `window.__omarchy` with
-  `screenText()` → array of row strings, `state()` → `{ mode, page, sel, input,
-status, powered, cols, rows, border, bg, doc: { key, off } | null }`, and
-  `skipBoot()`. It is tiny and it is part of the product's contract with the
-  e2e suite. Keep it working.
+`exec` receives `{ buffer, machine, content, snd, coldStart, startMaze, launch,
+openLink }`. Navigation decides whether a menu entry has a bundled document;
+it does not treat every omarchy.org URL as local. The `links` interface handles
+browser effects only; routing remains unit-testable without a DOM. Existing
+command-link and followed-mail behavior is preserved in `navigate.test.js`.
 
-## Build
+## Adding a command
 
-`npm run build` runs `build/build.mjs`:
+For a new typed command, add a matcher/handler in `machine/commands.js`, its
+help text in `content/strings.json`, and a case in
+`test/unit/machine/commands.test.js`. Side effects use `ctx`; do not add DOM
+access to the interpreter. The command table is ordered: check precedence
+against existing names and prefixes.
 
-1. esbuild bundles `src/main.js` (format `esm`, minified, three.js included
-   from `vendor/`).
-2. Assets in `assets/` are base64-encoded into `window.__OM_RES__`.
-3. Both are inlined into `site/index.html` at the `APP` and `RES` markers;
-   `site/styles.css` goes in at the `CSS` marker inside `<style>`. A missing
-   marker fails the build.
-4. Output: `dist/index.html`, a single self-contained file (~0.65 MB).
+## Frame and resize order
 
-`npm run dev` adds `--watch --serve`: it rebuilds on any change under `src/`,
-`content/`, `site/` or `assets/` and serves `dist/` on port 8000.
+Each frame checks CSS dimensions and capped DPR before stepping the machine.
+A changed tuple resizes renderer/post targets, camera, case and text grid;
+zero-sized canvases defer layout. Document reflow resets its scroll offset.
+A grid change recreates the painter's GPU texture because uploaded texture
+dimensions are immutable. The loop paints the tube, accumulates phosphor,
+samples its glow, moves the camera, renders post-processing, then syncs bezel
+hit targets through the updated camera. Do not replace this with resize-event
+ordering assumptions. [Mobile controls](MOBILE-CONTROLS.md) owns artwork and
+projection details.
 
-There is deliberately no runtime code loading, so the page works from `file://`.
+## Build and maintenance tools
 
-## Removed on purpose
+`build/build.mjs` bundles `src/main.js` with esbuild, base64-encodes `assets/`
+into `window.__OM_RES__`, and replaces the `APP`, `RES` and `CSS` markers in
+`site/index.html`. Missing markers fail the build. Build tests create their own
+temporary bundle; e2e tests use `dist/index.html` from `npm run build`.
+`npm run dev` watches `src/`, `content/`, `site/`, `assets/` on port 8000.
 
-The original desk scene (keyboard, disk drive, floppy, oak desk, canvas print,
-studio monitor) is not drawn any more: the framing is the monitor alone. The
-code and textures were deleted rather than left invisible. If the desk ever
-comes back, start from the history of `res/keyboard.webp`.
-
-Gone with it: `seat()` and the `CONTACTS` contact-shadow list, the `SOLO` flag,
-the drive/floppy/keyboard LEDs and their hint labels, `loadIso()` and its
-timer, and the unused zoom controls (`view.zoom`, `view.targetZoom` and
-`view.userZ` were always 0, so the camera maths is now written out flat). The
-wall survives: it is one untextured quad and it is what the tube glows onto.
-Its shader still carries a literal `-0.370` where `DESK_Y` used to be, because
-the contact shading at the foot of the wall reads from it.
-
-## Deviations from the original plan
-
-Both minimal, both deliberate:
-
-- `eslint.config.js` sets `ecmaVersion: 'latest'` rather than `2024`, because
-  the content layer needs import attributes (`with { type: 'json' }`), which
-  Node requires for JSON modules. No rule was relaxed.
-- `vendor/` is no longer ignored: three.js is committed there so a clone builds
-  with no network step. See `vendor/README.md` for the version and the upgrade
-  recipe. Lint and Prettier still skip the directory.
+`scripts/ci/` owns affected-check planning (`select.mjs`), stage execution
+(`checks.mjs`, `stage.mjs`) and local browser proof (`browser-check.mjs`,
+`browser-proof.mjs`). See [CI](CI.md) for the artifact/shard gate and cache inputs.
+`scripts/sync-content.mjs`, `scripts/sync/` and `content/sources.json` are an
+optional manual importer, independent of build/runtime/CI. Its stable output
+is the page tuple schema in [Content](CONTENT.md); its historical upstream
+assumptions are in [Content sources](CONTENT-SOURCES.md).

@@ -1,7 +1,7 @@
 // Getting around the machine: the keyboard's selection cycle, the typed
 // commands, the static pages, a shortcut that leaves for the web, and the two
 // pieces of hardware you steer with the mouse. Every expected string comes from
-// `content/`. Skips without the test hook (see test/e2e/README.md).
+// `content/`. The test hook is required (see test/e2e/README.md).
 import { expect, test } from '@playwright/test';
 import { expectOnScreen, runCommand, screenText, state } from './helpers/page.js';
 import { hintText, probeHint, switchRegion } from './helpers/probe.js';
@@ -24,7 +24,7 @@ const TEXT_PAGES = [
 const sel = async (page) => (await state(page)).sel;
 
 test('Tab and Shift+Tab cycle the selection through every entry', async ({ page }) => {
-  await atMenu(page, VIEWPORT);
+  await atMenu(page, VIEWPORT, { settle: false });
   expect(await sel(page)).toBe(0);
 
   const forward = [];
@@ -44,7 +44,7 @@ test('Tab and Shift+Tab cycle the selection through every entry', async ({ page 
 });
 
 test('a full label and a three-letter prefix both open the right page', async ({ page }) => {
-  await atMenu(page, VIEWPORT);
+  await atMenu(page, VIEWPORT, { settle: false });
 
   await runCommand(page, 'MEETUPS');
   await expect.poll(async () => (await state(page)).doc?.key).toBe('MEETUPS');
@@ -57,7 +57,7 @@ test('a full label and a three-letter prefix both open the right page', async ({
 });
 
 test('HELP, ABOUT, LIST and DIR print their pages, RUN goes back', async ({ page }) => {
-  await atMenu(page, VIEWPORT);
+  await atMenu(page, VIEWPORT, { settle: false });
   for (const [command, mode, title] of TEXT_PAGES) {
     await runCommand(page, command);
     await expect.poll(async () => (await state(page)).page).toBe(mode);
@@ -69,14 +69,14 @@ test('HELP, ABOUT, LIST and DIR print their pages, RUN goes back', async ({ page
 });
 
 test('an unknown command is a syntax error', async ({ page }) => {
-  await atMenu(page, VIEWPORT);
+  await atMenu(page, VIEWPORT, { settle: false });
   await runCommand(page, 'ZXQJ');
   await expect.poll(async () => (await state(page)).status).toBe(strings.status.syntax);
   expect((await state(page)).page).toBe('menu');
 });
 
 test('a shortcut name opens a new tab', async ({ page, context }) => {
-  await atMenu(page, VIEWPORT);
+  await atMenu(page, VIEWPORT, { settle: false });
   // Offline-safe: nothing in this suite may touch the real network. The stub
   // still lets the popup commit, so its URL is observable.
   await context.route('**/*', (route) => {

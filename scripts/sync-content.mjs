@@ -1,18 +1,9 @@
 #!/usr/bin/env node
-/* Keep content/pages/*.json in step with omarchy.org.
- *
- *   npm run sync                 fetch every page and rewrite what changed
- *   npm run sync:check           dry run; exits 1 if anything would change
- *   npm run sync -- --only NEWS  one page
- *   npm run sync -- --menu       also refresh content/menu.json's URLs
- *
- * The design is source-agnostic on purpose: the owner expects omarchy.org's
- * canonical content to move. One adapter per kind of source lives in
- * scripts/sync/adapters/, `content/sources.json` says which page uses which,
- * and the node tuples in between never change. Moving a page to a new source
- * is a one-line edit in sources.json, or one new adapter file.
- *
- * See docs/CONTENT-SOURCES.md for where each page's content actually lives. */
+/* Optional manual importer for the committed content snapshots.
+ * npm run sync -- --dry-run --only NEWS previews changes without writing.
+ * npm run sync -- --only NEWS imports them; --menu also updates menu URLs.
+ * Never called by the build, runtime, hooks or CI. See docs/CONTENT.md and
+ * docs/CONTENT-SOURCES.md before using the historical source configuration. */
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readJson, writeJson } from './sync/write.mjs';
@@ -92,7 +83,7 @@ async function main() {
   const deps = createDeps({ token: process.env.GITHUB_TOKEN });
   const results = [];
   for (const key of keys) {
-    // Sequential on purpose: nine polite requests a week, not a thundering herd.
+    // Sequential to avoid bursts against the upstream services.
     results.push(
       await syncPage(key, sources.pages[key], { root: ROOT, deps, dryRun: args.dryRun }),
     );

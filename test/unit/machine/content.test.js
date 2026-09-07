@@ -1,11 +1,28 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readdirSync, readFileSync } from 'node:fs';
 import * as content from '../../../src/content/index.js';
 
 const { menu, pages, shortcuts, strings } = content;
 
 const CURLY = /[“”‘’]/;
 const LOWER = /[a-z]/;
+
+test('every committed page is registered once under its filename and menu key', () => {
+  const directory = new URL('../../../content/pages/', import.meta.url);
+  const files = readdirSync(directory).filter((name) => name.endsWith('.json'));
+  const keys = files.map((name) => {
+    const page = JSON.parse(readFileSync(new URL(name, directory), 'utf8'));
+    assert.equal(name, `${page.key.toLowerCase()}.json`);
+    return page.key;
+  });
+  assert.equal(new Set(keys).size, keys.length, 'duplicate page key');
+  assert.deepEqual(
+    Object.keys(pages).sort(),
+    keys.sort(),
+    'update PAGE_FILES in src/content/index.js',
+  );
+});
 
 /** Every piece of text a page node carries (never the kind, never a URL). */
 function nodeTexts(node) {
@@ -40,7 +57,19 @@ test('every page node is a kind the renderer knows', () => {
   const KINDS = new Set(['H2', 'H3', 'P', 'LI', 'KV', 'A']);
   for (const [key, page] of Object.entries(pages)) {
     assert.ok(page.nodes.length > 0, `${key} is empty`);
-    for (const node of page.nodes) assert.ok(KINDS.has(node[0]), `${key}: bad kind ${node[0]}`);
+    for (const node of page.nodes) {
+      assert.ok(Array.isArray(node), `${key}: expected a node tuple`);
+      assert.ok(KINDS.has(node[0]), `${key}: bad kind ${node[0]}`);
+      assert.equal(
+        node.length,
+        ['KV', 'A'].includes(node[0]) ? 3 : 2,
+        `${key}: malformed ${node[0]}`,
+      );
+      assert.ok(
+        node.every((part) => typeof part === 'string'),
+        `${key}: non-text tuple part`,
+      );
+    }
   }
 });
 

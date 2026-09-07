@@ -1,12 +1,13 @@
 # End-to-end tests
 
 Playwright boots the **built** page in headless Chromium and checks it the way a
-visitor would see it. Nothing here reads `src/`: the subject is `dist/index.html`.
+visitor would see it. The subject is `dist/index.html`; content-driven suites
+import pure content/text modules from `src/` to derive expected tube text.
 
 ## Running
 
 ```sh
-npm run build            # or: node build.mjs dist/index.html
+npm run build            # refresh dist/index.html before testing
 npm run test:e2e         # run every suite
 npm run test:e2e:ui      # the interactive runner
 npm run test:e2e:update  # re-record the golden screenshots
@@ -35,6 +36,22 @@ Report: `playwright-report/` (`--reporter=html`, never auto-opened).
 | `monitor-controls.spec.js` | bezel rocker and Enter: navigation, repeat/cancel, boot, landscape and iPad hit targets           |
 | `cursor.spec.js`           | the retro pointer: shows over the canvas, hand over links, hides on mouse leave, persistent touch |
 
+`orientation.spec.js` also verifies sequential orientation/viewport changes
+and projected control alignment after dimensions settle.
+
+## Verification and runtime
+
+`npm run test:e2e` always runs fresh and records a complete passing result for
+local pre-push reuse. Filtered/UI/snapshot-update runs invalidate that result.
+[CI](../../docs/CI.md) documents the fingerprint and four-runner sharding; a
+single shard never counts as full proof.
+
+Keyboard/content assertions use `{ settle: false }` when only machine state
+or buffer text matters. `skipBoot` still waits for app mode and boot itself
+repaints synchronously. Visual and geometric pointer checks retain the four-second
+camera/CRT warm-up. Typed commands still use real key events, without a synthetic
+per-character delay. Test assertions, golden tolerances and timeouts are unchanged.
+
 ## The test hook
 
 Everything on the tube is drawn into a WebGL texture, so there is no DOM to
@@ -48,10 +65,11 @@ window.__omarchy = {
 };
 ```
 
-It is part of the product (`src/runtime/test-hook.js`), not test-only scaffolding
-bolted on from outside. The suites that depend on it call `hasHook(page)` and
-`test.skip(...)`, so they report as **skipped**, not failed, on a build that
-predates it. `boot`, `fallback` and `visual` never touch it.
+It is part of the product (`src/runtime/test-hook.js`). Suites that use it
+assert that it exists; a missing hook fails verification. Do not restore legacy
+skips for builds that predate the hook. `boot`, `fallback` and `visual` test
+startup or appearance independently. See [Debugging](../../docs/DEBUGGING.md)
+for readback examples and trace capture.
 
 ## Why SwiftShader
 
@@ -68,7 +86,7 @@ stops it bailing out on the virtual adapter.
 Consequences the tests are written around:
 
 - **It is slow** (~10 fps). Workers are pinned to 1 and the per-test timeout is
-  60 s. Never assert on how long the boot animation takes; press a key (or call
+  120 s (see `playwright.config.js`). Never assert on how long the boot animation takes; press a key (or call
   `skipBoot()`) and poll for the state you want.
 - **It is not pixel-exact**, and the CRT shader paints animated film grain on top.
   Screenshot comparison runs with `maxDiffPixelRatio: 0.05` and `threshold: 0.3`.
@@ -86,6 +104,14 @@ you just want to eyeball a change:
 ```sh
 node test/e2e/helpers/shots.mjs dist/index.html /tmp/shots
 ```
+
+## Pointer artwork
+
+For retro pointer artwork, edit the arrow/hand pixel rows in
+`src/input/cursor.js`: `X` is fill, `o` outline, `.` transparent. Keep rows the
+same width. Build, run `npm run test:e2e -- test/e2e/cursor.spec.js`, and inspect
+`test/e2e/__screenshots__/cursor.spec.js/desktop-cursor.png`. Add
+`--update-snapshots` only when the requested design change warrants new goldens.
 
 ## Mobile hardware verification
 

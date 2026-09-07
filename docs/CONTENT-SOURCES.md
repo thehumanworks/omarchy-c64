@@ -1,8 +1,15 @@
-# Where omarchy.org's content actually lives
+# Historical content source provenance
 
-Research current as of **2026-09-06**. This file is the evidence behind
-`content/sources.json`. When a source moves, update the relevant row here and
-the one line in `sources.json` that points at it.
+Research recorded on **2026-09-06**, not a live guarantee. This file preserves
+provenance and failure modes for the optional importer configured by
+`content/sources.json`. No build, runtime, hook or CI step depends on these
+services. The archived site uses committed JSON; see [Content](CONTENT.md)
+for direct editing and the manual-import overwrite boundary.
+
+Before using an importer after handover, verify the relevant URL, default
+branch, markup/API shape and reuse permission. Update this record and the
+configuration together when a source changes. The observations below describe
+the earlier investigation; they have not been revalidated for handover.
 
 ## The landscape
 
@@ -24,14 +31,13 @@ change-detection signal available to us.
 
 ### Robots, terms, licence
 
-- `https://omarchy.org/robots.txt` → **404**. No crawl rules are published, so
-  nothing is disallowed.
+- `https://omarchy.org/robots.txt` returned **404** in the recorded investigation.
+  Absence of that file is not permission to reuse content.
 - No `/terms/`, `/legal/`, `/privacy/` or `/license/` page exists (all 404).
 - Analytics is Plausible; there is no bot challenge, no consent wall, and a
   plain `curl` with the default user agent works on every URL.
-- Practical posture: the manual is MIT and safe to reuse. Everything else is
-  publicly readable with **no explicit licence grant**. We fetch politely
-  (weekly), we keep every page's canonical `url` so the tube links back, and we
+- Practical posture: the manual was identified as MIT; retain its license and attribution. Everything else is
+  publicly readable with **no explicit licence grant**. The retained importer fetches only when explicitly run; we keep every page's canonical `url` so the tube links back, and we
   quote rather than republish wholesale. Treat that as a deliberate, reviewable
   choice, not as a settled licence question — see the open questions below.
 
@@ -176,11 +182,11 @@ which is precisely what the current hand-written snapshot says. It stays
 
 1. **Licence.** The manual is MIT; the rest of omarchy.org is a public repo
    with no LICENSE. Worth asking DHH for an explicit grant, or at least a nod,
-   before this ships as an automated weekly pull.
+   before future redistribution or importing additional copy.
 2. **Where does the canonical content settle?** If the news markdown or the
-   page copy moves into a licensed repo, NEWS becomes `github-markdown` and the
-   five HTML pages could follow. That is a one-line change per page in
-   `sources.json` plus, at most, one new adapter.
+   page copy moves into a licensed repo, inspect its format and output contract
+   before selecting an adapter. The existing `github-markdown` adapter builds
+   a manual chapter index; news may need a different transformation and fixtures.
 3. **The manual branch.** `quattro` is the current default and will change at
    the next major. The adapter resolves the default branch at runtime, but if
    the manual ever moves out of the OS repo we need a new URL.

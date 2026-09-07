@@ -26,39 +26,6 @@ jobs:
       full: ${{ github.event_name != 'pull_request' }}
       base: ${{ github.event.pull_request.base.sha || '' }}
 
-  # Advisory only. The copy on omarchy.org moves on its own schedule, so a
-  # branch is not wrong because the upstream page changed under it; the weekly
-  # sync-content run is what actually refreshes content/. This job just makes
-  # the drift visible on the run, hence continue-on-error and an annotation
-  # rather than a failure. It is also the one job that needs the public
-  # internet, so a network blip must never block a merge.
-  content-fresh:
-    name: Content freshness
-    needs: verify
-    if: needs.verify.outputs.freshness == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    continue-on-error: true
-    steps:
-      - name: Check out
-        uses: actions/checkout@v5
-
-      - name: Install tools from mise.toml
-        uses: jdx/mise-action@v2
-        with:
-          install_args: node
-          cache: true
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Is content/ in step with omarchy.org?
-        run: npm run sync:check
-
-      - name: Warn when it is not
-        if: failure()
-        run: echo "::warning::content/ is behind omarchy.org, run npm run sync"
-
   preview:
     name: Preview deploy
     needs: verify

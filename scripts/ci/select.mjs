@@ -3,11 +3,11 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 
 export function fullPlan(reason = 'Shared or unknown input changed') {
-  return { mode: 'full', reason, unit: true, build: true, e2e: ['all'], freshness: true };
+  return { mode: 'full', reason, unit: true, build: true, e2e: ['all'] };
 }
 
 const docs =
-  /^(?:docs\/.*\.md|(?:README|CONTRIBUTING|AGENTS)\.md|test\/e2e\/README\.md|vendor\/README\.md)$/;
+  /^(?:docs\/.*\.md|(?:README|CONTRIBUTING|AGENTS|CLAUDE)\.md|test\/e2e\/README\.md|vendor\/README\.md)$/;
 const sync =
   /^(?:scripts\/sync\/.*\.mjs|scripts\/sync-content\.mjs)$|^test\/(?:fixtures|unit)\/sync\//;
 export const CURSOR_SUITES = [
@@ -31,7 +31,6 @@ export function selectChecks(files, exists = existsSync) {
     unit: false,
     build: false,
     e2e: [],
-    freshness: false,
   };
   for (const file of files) {
     if (docs.test(file)) continue;
@@ -41,7 +40,6 @@ export function selectChecks(files, exists = existsSync) {
       plan.e2e.push(...CURSOR_SUITES);
     } else if (sync.test(file)) {
       plan.unit = true;
-      plan.freshness = true;
     } else if (/^test\/unit\/.*\.test\.js$/.test(file)) {
       plan.unit = true;
     } else if (spec.test(file) && exists(file)) {
