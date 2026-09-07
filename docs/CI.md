@@ -167,8 +167,22 @@ with no omissions or duplicates.
 The final local full gate passed **183 unit tests, 10 build tests and 68 browser
 tests** (browser duration **14.3m**). After the fast CI stage rebuilt the same
 page, `/usr/bin/time -p npm run test:e2e:cached` reused that complete proof in
-**1.03s**. Hosted wall-time must still be measured on a real run; shard counts
-alone are not a hosted performance result.
+**1.03s**. The actual `git push`, including rebuild, proof reuse and network
+upload, completed in **2.34s** with every hook enabled.
+
+Hosted verification of `250039c` then passed in **5m34s** from the first job
+starting through the aggregate gate completing
+([run 34159355036](https://github.com/thehumanworks/omarchy-c64/actions/runs/34159355036)).
+Fast checks/build took 33s; browser jobs took 4m36s, 2m44s, 2m39s and 4m50s
+including setup; the final gate took 5s. Each shard reported **17 passed**, with
+no failures, skips or flaky results. The entire dispatch, including queue/status
+overhead, took 5m40s. This is about 78% less verification wall time than the prior
+successful run, with the revision/load caveat above. Preview deployment was skipped.
+
+The run retained existing GitHub action-runtime deprecation notices: some
+upstream actions declare Node 20 and GitHub ran them on Node 24. The repository's
+application/test commands still use Node 26 through Mise. These notices did not
+fail verification; action-version modernization remains separate from this change.
 
 ## Measured results (2026-09-06)
 
