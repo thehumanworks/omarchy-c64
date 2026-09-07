@@ -13,8 +13,6 @@ on:
     outputs:
       built:
         value: ${{ jobs.verify.outputs.built }}
-      freshness:
-        value: ${{ jobs.verify.outputs.freshness }}
 
 permissions:
   contents: read
@@ -30,7 +28,6 @@ jobs:
     timeout-minutes: 40
     outputs:
       built: ${{ steps.plan.outputs.build }}
-      freshness: ${{ steps.plan.outputs.freshness }}
     steps:
       - name: Check out
         uses: actions/checkout@v5

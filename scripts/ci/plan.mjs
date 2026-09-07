@@ -16,7 +16,6 @@ export function publishPlan(plan) {
   const outputs = {
     build: plan.build,
     browser: plan.e2e.length > 0,
-    freshness: plan.freshness,
   };
   appendFileSync(
     process.env.GITHUB_OUTPUT,

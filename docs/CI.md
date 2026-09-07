@@ -28,19 +28,17 @@ until its coverage is deliberately mapped and tested.
 Lint and formatting always run over the entire tree. Mixed changes take the
 union below; any full input overrides the union.
 
-The freshness flag selects the separate **advisory PR job**. It does not run
-network sync checks inside local `check:changed` or the production workflow.
-Authoritative freshness for changed content/source adapters remains a separate
-local and pre-commit obligation documented in CONTRIBUTING and Development.
+These checks validate the committed snapshot and local fixtures. They do not
+compare content with external websites or import new copy.
 
-| Changed inputs                                                             | Unit suite | Build invariants and bundle | Browser suites                                                                | Content freshness |
-| -------------------------------------------------------------------------- | ---------- | --------------------------- | ----------------------------------------------------------------------------- | ----------------- |
-| Markdown under `docs/`, root README/CONTRIBUTING/AGENTS, e2e/vendor README | No         | No                          | None                                                                          | No                |
-| Sync scripts, sync fixtures and sync unit tests/helpers                    | All        | No                          | None                                                                          | Yes               |
-| Other `test/unit/**/*.test.js`                                             | All        | No                          | None                                                                          | No                |
-| Direct `test/e2e/*.spec.js`                                                | No         | Yes                         | Changed specs                                                                 | No                |
-| `src/input/cursor.js`                                                      | All        | Yes                         | boot, fallback, cursor, pointer, touch, monitor-controls, orientation, visual | No                |
-| Everything else                                                            | All        | Yes                         | All                                                                           | Yes               |
+| Changed inputs                                                                    | Unit suite | Build invariants and bundle | Browser suites                                                                |
+| --------------------------------------------------------------------------------- | ---------- | --------------------------- | ----------------------------------------------------------------------------- |
+| Markdown under `docs/`, root README/CONTRIBUTING/AGENTS/CLAUDE, e2e/vendor README | No         | No                          | None                                                                          |
+| Manual import scripts, fixtures and unit tests/helpers                            | All        | No                          | None                                                                          |
+| Other `test/unit/**/*.test.js`                                                    | All        | No                          | None                                                                          |
+| Direct `test/e2e/*.spec.js`                                                       | No         | Yes                         | Changed specs                                                                 |
+| `src/input/cursor.js`                                                             | All        | Yes                         | boot, fallback, cursor, pointer, touch, monitor-controls, orientation, visual |
+| Everything else                                                                   | All        | Yes                         | All                                                                           |
 
 The cursor is the only narrow runtime mapping. It imports no modules and owns
 the sprite and canvas cursor style; main wires it up. Coverage includes its
@@ -51,9 +49,9 @@ goldens. Shared input handlers and composition remain full.
 All other `src/`, content, assets, site HTML/CSS, vendor code, build scripts,
 dependency files, workflow/CI scripts, hook configuration, shared test helpers,
 goldens and unknown files select full. Adding imports or responsibilities to
-the cursor requires reviewing this mapping. All content changes retain the
-existing authoritative pre-commit freshness check; CI freshness is still
-advisory. The weekly sync workflow is unchanged.
+the cursor requires reviewing this mapping. Freshness outputs, the advisory
+content comparison job and scheduled import PRs have been removed. Manual
+import tooling and its offline fixture tests remain.
 
 ## Workflow composition
 
@@ -98,11 +96,6 @@ they do not replace revision discovery or the required gate for a real change.
 Compare against a fresh `npm run check` baseline on the same host. Local timings
 exclude hosted runner startup, npm installation, browser installation and
 artifact transfer; the next hosted run is the end-to-end CI confirmation.
-
-The clean pre-change baseline on main `9ea9d5b` measured **377.34 seconds**
-wall time on the local Mac Studio, with **66 browser tests passing in 6.2
-minutes** (2026-09-06). Re-run the selected scenarios on the integrated revision
-when comparing changes that add tests; keep hosted-runner timings separate.
 
 ## Measured results (2026-09-06)
 

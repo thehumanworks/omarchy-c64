@@ -23,10 +23,6 @@ run = "npm run check"
 description = "Pull page copy from the sources in content/sources.json into content/pages"
 run = "npm run sync"
 
-[tasks."sync:check"]
-description = "Dry-run the sync: fails when content/ is behind omarchy.org (needs the network)"
-run = "npm run sync:check"
-
 [tasks.deploy]
 description = "Manual production deploy to Cloudflare Pages (CI does this on push to main)"
-run = "fnox run -- npx --no-install wrangler pages deploy dist --project-name omarchy-website"
+run = "fnox run -- npx --no-install wrangler pages deploy dist --project-name omarchy-website --branch main"

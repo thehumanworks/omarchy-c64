@@ -1,8 +1,7 @@
 /**
  * Where a click or a typed name actually goes: a first-party page opens on the
- * tube, anything else opens a browser tab. The only module in `src/machine/`
- * that touches `document`, and only from inside a function — importing it in
- * Node is safe. May import `src/text/` and its pure siblings.
+ * tube, anything else opens a browser tab. Browser effects are injected by
+ * main.js; routing and document layout can run without a DOM.
  */
 
 import { pretty } from '../text/wrap.js';
@@ -13,24 +12,13 @@ import { docLines } from './doc-lines.js';
 const fill = (template, value) => template.replace('$1', value);
 
 /**
- * `deps` is `{ buffer, machine, content, snd, repaint }`.
+ * `deps` is `{ buffer, machine, content, snd, repaint, links }`.
+ * `links` supplies `newTab(url)` and `mailto(url)` browser effects.
  * Returns the navigation callbacks `commands.js` and `input/` are given.
  */
 export function createNavigator(deps) {
-  const { buffer, machine, content, snd, repaint } = deps;
+  const { buffer, machine, content, snd, repaint, links } = deps;
   const status = () => content.strings.status;
-
-  /* window.open with a features string gets a stripped popup window; a
-     synthetic anchor click is what actually produces a normal background tab. */
-  function newTab(url) {
-    const a = document.createElement('a');
-    a.href = url;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  }
 
   function openDoc(key) {
     const page = content.pages[key];
@@ -45,10 +33,10 @@ export function createNavigator(deps) {
     say(machine, fill(status().launching, label), LTGREEN);
     snd.beep(320, 0.08, 'square', 0.11, 640);
     setTimeout(() => snd.beep(780, 0.11, 'square', 0.11, 380), 85);
-    newTab(url);
+    links.newTab(url);
   }
 
-  /* a URL that omarchy.org owns opens on the tube, anything else gets a tab */
+  /* Only URLs matching a bundled menu page open on the tube. */
   function follow(url) {
     const trim = (u) => u.replace(/\/+$/, '');
     const entry = content.menu.find((e) => trim(e.url) === trim(url));
@@ -60,7 +48,7 @@ export function createNavigator(deps) {
       /* a tab for mail is silly */
       say(machine, status().mail, LTGREEN);
       snd.beep(320, 0.08, 'square', 0.11, 640);
-      window.location.href = url;
+      links.mailto(url);
       return;
     }
     openLink(url, (entry ? entry.label : pretty(url)).slice(0, 22));

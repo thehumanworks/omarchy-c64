@@ -4,16 +4,15 @@ import { CURSOR_SUITES, fullPlan, selectChecks } from '../../../scripts/ci/selec
 import { commandsFor, runChecks } from '../../../scripts/ci/checks.mjs';
 
 test('docs-only changes keep lint and format without unit, build or browser work', () => {
-  const plan = selectChecks(['docs/DEVELOPMENT.md', 'CONTRIBUTING.md', 'AGENTS.md']);
+  const plan = selectChecks(['docs/DEVELOPMENT.md', 'CONTRIBUTING.md', 'AGENTS.md', 'CLAUDE.md']);
   assert.equal(plan.mode, 'affected');
   assert.deepEqual(commandsFor(plan), [
     ['run', 'lint'],
     ['run', 'format:check'],
   ]);
-  assert.equal(plan.freshness, false);
 });
 
-test('sync tools and fixtures keep all unit tests and authoritative freshness', () => {
+test('manual import tools and fixtures keep all unit tests without browser work', () => {
   for (const file of [
     'scripts/sync-content.mjs',
     'scripts/sync/run.mjs',
@@ -22,7 +21,6 @@ test('sync tools and fixtures keep all unit tests and authoritative freshness', 
   ]) {
     const plan = selectChecks([file]);
     assert.equal(plan.unit, true, file);
-    assert.equal(plan.freshness, true, file);
     assert.equal(plan.build, false, file);
     assert.deepEqual(plan.e2e, [], file);
   }
@@ -58,7 +56,6 @@ test('mixed isolated changes take the union, with deterministic deduplication', 
     ['docs/CI.md', 'src/input/cursor.js', 'test/e2e/cursor.spec.js', 'scripts/sync/run.mjs'],
     () => true,
   );
-  assert.equal(plan.freshness, true);
   assert.deepEqual(plan.e2e, [...CURSOR_SUITES].sort());
 });
 

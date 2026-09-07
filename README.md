@@ -12,7 +12,8 @@ interface presents the menu, documents and typed commands.
 The site uses plain HTML, CSS and ES modules. The build inlines JavaScript,
 styles and assets into one `dist/index.html`, which also works from `file://`.
 There is no framework or application server. Page copy lives in `content/`;
-configured upstream sources refresh the page snapshots through the sync tools.
+the committed snapshots define this archived edition. Optional manual import
+tools remain available, but build, runtime, hooks and CI do not fetch content.
 
 Physical keyboards support typed commands. On touch devices, a rocker and
 Enter button on the monitor's bezel handle navigation and scrolling. Commands
@@ -43,12 +44,13 @@ hooks and the proof standard. A successful dev-server start is not test proof.
 
 - [Contributing](CONTRIBUTING.md): workflow for humans and AI agents, code
   quality, testing and changes that need source or visual evidence.
-- [Agent instructions](AGENTS.md): repository rules and common change recipes.
+- [Agent instructions](AGENTS.md): the single entry point and task reading map.
 - [Architecture](docs/ARCHITECTURE.md): layers, module map and the single-file
   build; read before changing `src/`.
 - [Content](docs/CONTENT.md) and [Content sources](docs/CONTENT-SOURCES.md):
-  editorial data, sync commands and upstream evidence. Diagnose synced copy
-  before hand-editing snapshots.
+  snapshot editing, optional import commands and historical source provenance.
+- [Debugging](docs/DEBUGGING.md): symptom-to-module map, focused checks and
+  browser failure evidence.
 - [Mobile controls](docs/MOBILE-CONTROLS.md): bezel artwork, projection and
   interaction verification.
 - [Deployment](docs/DEPLOYMENT.md): Cloudflare Pages, previews, production,

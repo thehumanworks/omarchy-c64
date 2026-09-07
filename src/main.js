@@ -36,6 +36,7 @@ import { createScroll } from './input/scroll.js';
 import { createLoop } from './runtime/loop.js';
 import { installFavicon } from './runtime/favicon.js';
 import { installTestHook } from './runtime/test-hook.js';
+import { browserLinks } from './runtime/links.js';
 
 const RES = window.__OM_RES__;
 const rom = Uint8Array.from(atob(RES.chargen), (c) => c.charCodeAt(0));
@@ -71,7 +72,7 @@ scene.add(wall);
 const post = createPost(renderer, blit);
 
 /* ---------------------------------------------------------------- machine */
-const nav = createNavigator({ buffer, machine, content, snd: Snd, repaint });
+const nav = createNavigator({ buffer, machine, content, snd: Snd, repaint, links: browserLinks });
 const boot = createBoot({ buffer, machine, content, snd: Snd, repaint, crt: tube.crt });
 const togglePower = createPower({ machine, snd: Snd, boot, crt: tube.crt });
 

@@ -11,7 +11,6 @@
     "build": "node build/build.mjs",
     "dev": "node build/build.mjs --watch --serve",
     "sync": "node scripts/sync-content.mjs",
-    "sync:check": "node scripts/sync-content.mjs --dry-run",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix --max-warnings 0",
     "format": "prettier --write .",

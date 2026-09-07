@@ -11,9 +11,7 @@ import "package://github.com/jdx/hk/releases/download/v1.58.1/hk@1.58.1#/Builtin
 // in mise.toml and package.json. Steps are scoped by `glob` so a commit that
 // only touches, say, a workflow file does not pay for the JS toolchain.
 
-// Where lintable first-party JavaScript lives. `app.js`, `pages*.js` and
-// `build.mjs` at the repo root are the pre-refactor monolith and are
-// deliberately NOT in this list: they are being replaced by `src/`.
+// First-party JavaScript checked by the same ESLint config as CI.
 local const jsGlobs: List<String> = List(
   "src/**/*.js",
   "build/**/*.js",
@@ -42,13 +40,7 @@ local linters = new Mapping<String, Step> {
   // Formatting for every text file prettier understands. .prettierignore
   // decides what is out of scope.
   //
-  // `depends` on eslint so that in the FIX path prettier runs last. Without it
-  // the two fixers race and eslint wins: `eslint --fix` applying the `curly`
-  // rule rewrites a multi-line `if (x) throw ...` into `if (x) {throw ...}` on
-  // one line, which prettier had already formatted and would format back. The
-  // commit then lands prettier-dirty even though the hook reported success.
-  // Formatting is the last word: eslint decides what the code says, prettier
-  // decides how it is laid out.
+  // Serialize fixers so formatting is always the final write.
   ["prettier"] = (Builtins.prettier) {
     prefix = npmBin
     depends = List("eslint")
@@ -88,28 +80,6 @@ local linters = new Mapping<String, Step> {
   }
 }
 
-// Is the committed copy still what omarchy.org says? `npm run sync:check` is a
-// dry run of the sync: it exits non-zero when a page, the menu or a source
-// would change. Scoped to the content and the sync code, so an ordinary commit
-// never pays for it, and check-only: the repair is `mise run sync`, which
-// rewrites editorial copy and has to be read by a human before it is committed.
-//
-// It is the only step that needs the network. Offline, skip it by name with
-// hk's own mechanism - never `--no-verify`:
-//
-//     HK_SKIP_STEPS=content-fresh git commit -m "..."
-//
-local const contentFresh: Step = new Step {
-  glob = List(
-    "content/pages/**/*.json",
-    "content/menu.json",
-    "content/sources.json",
-    "scripts/sync/**"
-  )
-  batch = false
-  check = "npm run sync:check"
-}
-
 hooks {
   // Runs on `git commit`. fix = true so prettier/eslint repair what they can
   // and hk re-stages the result; stash = "git" hides unstaged work so the
@@ -117,9 +87,7 @@ hooks {
   ["pre-commit"] {
     fix = true
     stash = "git"
-    steps = (linters) {
-      ["content-fresh"] = contentFresh
-    }
+    steps = linters
   }
 
   // Runs on `git push`. The expensive proof: a real bundle and the headless
@@ -138,9 +106,7 @@ hooks {
 
   // `hk check` - read-only, safe anywhere, what CI approximates.
   ["check"] {
-    steps = (linters) {
-      ["content-fresh"] = contentFresh
-    }
+    steps = linters
   }
 
   // `hk fix` - the same steps, allowed to rewrite files.

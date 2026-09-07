@@ -7,7 +7,7 @@ import { expect } from '@playwright/test';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
-/** The built, self-contained page. `npm run build` (or `node build.mjs dist/index.html`). */
+/** The built, self-contained page. `npm run build`. */
 export const DIST = path.resolve(HERE, '..', '..', '..', 'dist', 'index.html');
 export const DIST_URL = `file://${DIST}`;
 

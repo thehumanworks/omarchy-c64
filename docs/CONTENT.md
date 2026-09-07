@@ -1,7 +1,9 @@
 # Content
 
-Everything the site _says_ lives in `content/`. Code never hard-codes copy, so
-changing the wording, the menu or a page must not require touching `src/`.
+Everything shown as tube copy lives in `content/`. Existing page wording is
+edited here without changing `src/`. Site metadata, accessible fallback copy
+and control labels live in `site/index.html`. Keep its fallback/screen-reader
+links aligned when changing menu URLs.
 
 ```
 content/
@@ -76,14 +78,19 @@ page never opens or ends on one.
 3. Make sure a `content/menu.json` entry has the same label and URL.
 4. `npm run test:unit` — `test/unit/machine/content.test.js` checks the key
    matches a menu label, the URLs agree, the normalisation held, and that every
-   node kind is one the renderer knows.
+   node kind/tuple shape is supported. It also catches unregistered page files.
 
 To change wording only, edit the JSON and rebuild. Nothing else moves.
 
 ## Where the content comes from
 
-The page files are not hand-maintained snapshots. `content/sources.json` says
-where each one is pulled from, and `npm run sync` pulls it:
+The committed page files are the maintained snapshot for this archived edition.
+Edit them directly for editorial changes; no comparison with today's main
+website is required. The build and runtime never read `content/sources.json`
+or call a content service.
+
+The previous importer remains as an **optional manual tool**. Its configuration
+in `content/sources.json` describes historical sources, for example:
 
 ```json
 "NEWS": {
@@ -109,76 +116,62 @@ matching the menu's `/news/` URL. The adapters today:
 | `html`            | a rendered page, via CSS selectors                   | AIR, SECURITY, TEAMS, PATRONS, SPONSORS |
 | `static`          | "no source worth syncing" — keeps the committed file | WORKSTATIONS                            |
 
-**`docs/CONTENT-SOURCES.md` is the evidence**: which repo, which URL, which
+**[Content sources](CONTENT-SOURCES.md) records historical provenance**: which repo, which URL, which
 licence, and how stable each source looked when it was checked. Read it before
 changing a source, and update it when you do.
 
-### Running a sync
+### Optional manual import
 
-```
-npm run sync                    fetch everything, rewrite what changed
-npm run sync:check              dry run; exits 1 if anything would change
-npm run sync -- --only NEWS     one page (comma-separated, repeatable)
-npm run sync -- --menu          also refresh menu.json's URLs from sources.json
+A manual import can overwrite local editorial changes. Inspect a dry run first,
+review the JSON diff after importing, and run `npm run check`. Do not import
+merely because a snapshot differs from the current main website.
+
+```sh
+npm run sync -- --dry-run       # preview differences and source failures
+npm run sync -- --only NEWS     # import one page (comma-separated, repeatable)
+npm run sync                    # import every configured page
+npm run sync -- --menu          # also refresh menu URLs from sources.json
 ```
 
-The sync is idempotent — running it twice leaves the second run nothing to do —
-and safe under failure: an unreachable source leaves that page's committed JSON
+With unchanged source data/configuration, repeated imports produce no diff.
+On failure, an unreachable source leaves that page's committed JSON
 alone, and the run reports it and exits non-zero. It never touches
 `content/menu.json` unless you pass `--menu`, and even then only the URLs; the
 labels, order and block counts are editorial. It writes the same
 `{key,title,url,nodes}` shape documented above, formatted through prettier, so
 `npm run format:check` and the sync always agree.
 
-A weekly GitHub Actions run (`.github/workflows/sync-content.yml`, Mondays at
-06:00 UTC) does the same and opens a pull request on the `content-sync` branch
-with the diff summary in the body. It never pushes to `main`: the diff is copy,
-and a human should read it.
+There is no scheduled sync workflow, freshness CI job, commit hook or required
+network check. `--dry-run` remains useful for an explicitly requested import:
+exit 0 means no differences, 1 means differences or source failure (read the
+summary), and 2 means a usage/configuration error. `--only KEY` accepts a
+comma-separated list and may be repeated. `GITHUB_TOKEN` is optional for the
+manual's GitHub API rate limit; handle it through the existing secret provider.
 
-### Is the content up to date?
-
-Three things ask that question, in rising order of patience:
-
-| Where                        | What it does                                                                                                                                                                            | When it is wrong                                       |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| the `content-fresh` git hook | runs `npm run sync:check` on any commit that touches `content/pages/**`, `content/menu.json`, `content/sources.json` or `scripts/sync/**`, and refuses the commit if the tree is behind | you hand-edited a page instead of syncing it           |
-| the `content-fresh` CI job   | the same check on every branch and pull request, advisory: it cannot fail the run, it writes a `::warning::` annotation saying `content/ is behind omarchy.org, run npm run sync`       | omarchy.org moved while your branch was open           |
-| the weekly sync PR           | `.github/workflows/sync-content.yml`, Mondays 06:00 UTC, opens a pull request on `content-sync`                                                                                         | nobody read it — the copy is a diff, it wants a reader |
-
-The hook is the strict one because it guards the thing an agent is most likely
-to get wrong: editing `content/pages/*.json` by hand. The fix is never to argue
-with the hook, it is:
-
-```sh
-mise run sync         # or npm run sync
-```
-
-then read the diff summary it prints and commit `content/`. The CI job is
-deliberately toothless: the upstream page moving is not a reason to block a
-merge, and it is the one job that needs the public internet.
-
-**Offline**, `sync:check` cannot run. Skip that step by name — never
-`--no-verify`, which would turn off the linters and the unit suite too:
-
-```sh
-HK_SKIP_STEPS=content-fresh git commit -m "..."
-```
-
-See [DEVELOPMENT.md](DEVELOPMENT.md#working-offline).
+To keep a locally edited page out of future bulk imports, replace its source
+record with `{"adapter": "static", "url": "THE_COMMITTED_PAGE_URL", "reason": "Maintained locally"}`.
+Remove old adapter-specific fields, especially a `page` URL override; `--menu`
+uses the source URL, so it must agree with the committed page/menu. New snapshot pages need no source entry
+unless they should participate in the manual importer. The importer and its
+fixture tests are independent of the runtime; future owners can replace or
+retire them without changing the `{key,title,url,nodes}` rendering contract.
 
 ### Changing where a page comes from
 
 The source is _expected_ to move. The node tuples are the stable contract;
 everything upstream of them is configuration.
 
-**A new URL, same shape.** Change `url` in `sources.json`. Nothing else.
+**A new fetch URL, same shape.** Change `url` in `sources.json` and preview the
+import. If the canonical page URL also changed, align the source's `page`
+override, the snapshot URL, menu URL and fallback/screen-reader links.
 
 **The markup changed.** Change that page's selectors — `root`, `exclude`,
 `pairs`, `promote`. Still no code.
 
-**A different kind of source** — say the news markdown lands in a licensed
-repo. Change `adapter` to `github-markdown` and give it `repo`/`dir`. The
-adapter already exists.
+**A different kind of source.** Read the candidate adapter and its fixtures
+before choosing it. `github-markdown` builds a manual chapter index from
+`repo`, `dir` and `lede`; it is not a generic news article importer. Verify the
+emitted tuples rather than assuming a format name guarantees compatible output.
 
 **Somewhere no adapter handles.** Add one file:
 
@@ -222,10 +215,10 @@ survives.
 - `blocks` — the fake 1541 block count `DIR` prints. Cosmetic.
 
 **How the menu maps to pages:** a menu label with a matching
-`content/pages/<label>.json` opens **on the tube** as a document; anything else
+`content/pages/<lowercase label>.json` opens **on the tube** as a document; anything else
 opens a **new browser tab**. Nine of the fourteen entries are first-party pages
 today; ISO, PLUGINS, GITHUB, DISCORD and MERCH are tabs. To move an entry onto
-the tube, add a page file with its label as the key — no code change.
+the tube, add a page file and register its static import as described above.
 
 The menu is also the source of truth for the numbers `1`–`14` at the prompt and
 for the cursor-key order.
@@ -233,9 +226,10 @@ for the cursor-key order.
 ## `content/shortcuts.json`
 
 A flat `NAME → URL` map for things worth typing but not worth a menu row
-(`DHH`, `HEY`, `BASECAMP`, `MAIL`, …). Names must be upper case. A `mailto:`
-URL is handled specially by `src/machine/navigate.js`: it navigates rather than
-opening a tab.
+(`DHH`, `HEY`, `BASECAMP`, `MAIL`, …). Names must be upper case. Typed shortcuts
+use `openLink` (the existing anchor/tab path). Following a document's `mailto:`
+link uses the current location. These distinct behaviors are covered by
+`test/unit/machine/navigate.test.js`; changing them is a separate behavior task.
 
 ## `content/strings.json`
 
@@ -254,7 +248,7 @@ Grouped by where the text appears:
 | `boot`          | every line the power-on sequence types                                  |
 | `maze`          | the footer under `10 PRINT`                                             |
 | `status`        | the flash messages; `$1` is substituted at run time                     |
-| `labels`        | the hardware hint pill; `open` uses `$1` for the menu label             |
+| `labels`        | hover metadata (no visible badge); `open` uses `$1` for the menu label  |
 
 Lines in `about.lines` and `list.lines` are either `""` (a blank row) or
 `[text, "COLOURNAME"]`. Colour names are resolved by `src/text/palette.js` —

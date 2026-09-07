@@ -9,6 +9,27 @@ configuration: CI builds the file and uploads it.
 - Cloudflare-owned alias: `https://omarchy-website.pages.dev`
 - Project settings live in [`wrangler.toml`](../wrangler.toml)
 
+## Handover boundary
+
+The settings below describe this repository's existing hosting configuration,
+not a verified transfer to the new owner. Before enabling publishing in a
+transferred repository, confirm the Pages account/project, production branch,
+GitHub environment and secrets, local `fnox.toml` provider references, and the
+intended domain with its DNS owner. The current `omarchy.thehuman.sh` and
+1Password references belong to the existing setup; they are not portable
+credentials. Check branch protection for retired content jobs if old required
+checks were configured outside the repository.
+
+Content is a committed historical snapshot. CI no longer compares it with the
+main website or opens automated import PRs. External links (including the ISO,
+manual, news and meetups) still target their committed URLs and may move; the
+owner must decide when to update them. [Content sources](CONTENT-SOURCES.md)
+records the optional importer's remaining upstream assumptions. Confirm the
+project/content licensing and attribution before redistribution; the current
+package remains `UNLICENSED`.
+
+No repository edit by itself transfers hosting, credentials, DNS or ownership.
+
 ## How a deploy happens
 
 ```
@@ -87,15 +108,15 @@ runs full verification. Use the **CI** workflow's dispatch for other branches;
 it verifies without publishing to production.
 
 Only for emergencies, or when CI itself is broken. It publishes whatever is in
-your local `dist/`, so build first:
+your local `dist/`, so run the proof first:
 
 ```sh
-npm run build
-mise run deploy      # fnox run -- npx wrangler pages deploy dist --project-name omarchy-website
+npm run check
+mise run deploy      # explicitly publishes dist/ with --branch main
 ```
 
-`mise run deploy` deploys to **production** (no `--branch` flag means the
-project's production branch). To publish a throwaway preview instead:
+`mise run deploy` passes **`--branch main` explicitly**; verify that `main` is
+the Pages project's configured production branch before using it. To publish a throwaway preview instead:
 
 ```sh
 fnox run -- npx wrangler pages deploy dist \
@@ -118,10 +139,11 @@ If the dashboard is not an option, redeploy an older commit: check it out,
 `npm run build`, then `mise run deploy`. Prefer the dashboard — it deploys the
 exact artefact that was live, with no chance of a different build result.
 
-## Adding the custom domain `c63.omarchy.org`
+## Previously proposed custom domain `c63.omarchy.org`
 
-`omarchy.org` is not ours; DHH controls its DNS. The Pages side can be prepared
-first, and the domain starts serving as soon as the CNAME appears.
+This name was proposed previously; it is not a confirmed handover destination.
+Confirm the desired hostname and authorization with the DNS owner before using
+the following procedure. The Pages custom domain and DNS must both be configured.
 
 1. **Cloudflare (us):** dashboard → **Workers & Pages** → `omarchy-website` →
    **Custom domains** → **Set up a domain** → enter `c63.omarchy.org`.

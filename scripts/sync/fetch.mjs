@@ -4,8 +4,7 @@
  * global fetch themselves, which is what lets the unit tests run adapters
  * against fixture strings with no network at all. */
 
-const USER_AGENT =
-  'omarchy-c64-content-sync/1.0 (+https://omarchy.thehuman.sh; weekly, one request per page)';
+const USER_AGENT = 'omarchy-c64-content-sync/1.0 (+https://omarchy.thehuman.sh; manual import)';
 
 /** Retry a fetch a couple of times on 5xx and transport errors. */
 async function withRetry(url, init, attempts) {
