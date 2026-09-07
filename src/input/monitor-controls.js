@@ -3,13 +3,11 @@ function bindEnter(button, press) {
   let pointer = null;
   const stop = () => {
     pointer = null;
-    button.classList.remove('down');
   };
   button.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     pointer = e.pointerId;
     button.setPointerCapture(pointer);
-    button.classList.add('down');
   });
   button.addEventListener('pointerup', (e) => {
     if (pointer !== e.pointerId) return;
