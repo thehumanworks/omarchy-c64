@@ -125,3 +125,17 @@ test('the editorial strings survived normalisation', () => {
   assert.equal(strings.about.lines.filter((l) => l === '').length, 3);
   for (const s of strings.hints) assert.ok(!LOWER.test(s), s);
 });
+
+// Issue #7: the tube talks about Omarchy, never about who hosts, builds or
+// deploys this site. The chrome, the ABOUT page and the typed shortcuts are the
+// places such a credit used to live.
+test('the tube copy never credits the hosting or build stack', () => {
+  const STACK = /CLOUDFLARE|HOSTING|HOSTED/;
+  const copy = [
+    strings.ticker,
+    ...strings.hints,
+    ...strings.about.lines.map((l) => (l === '' ? '' : l[0])),
+    ...Object.keys(shortcuts),
+  ];
+  for (const text of copy) assert.doesNotMatch(text, STACK, text);
+});
