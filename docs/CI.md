@@ -2,8 +2,9 @@
 
 `npm run check` remains the unconditional full gate. CI uses the same commands
 through a conservative selector, reducing browser work only for explicitly
-isolated inputs. No test timing, worker count, retry, assertion or golden is
-relaxed.
+isolated inputs. Assertions, screenshot tolerances, retries and one software-WebGL worker per
+runner are preserved. State-only keyboard/content checks omit the camera warm-up
+that visual and pointer tests still need.
 
 ## Commands and change ranges
 
@@ -55,29 +56,73 @@ import tooling and its offline fixture tests remain.
 
 ## Workflow composition
 
-`verify.yml` owns PR checkout, planning, dependency installation and verification.
-Chromium is installed only for browser plans. A built page is uploaded only
-after its checks pass.
+`verify.yml` is shared by PRs, branch dispatch and production:
 
-`ci.yml` runs on pull requests, avoiding the previous duplicate branch-push
-run. Manual dispatch provides full verification for a branch without a PR.
-Same-repository PRs with a built page receive a preview from the checked
-artifact; docs/tooling-only changes need no preview. Fork PR verification does
-not attempt a credential-dependent deployment.
+1. **Fast checks and build** selects the plan, runs lint/format/unit/build checks,
+   and uploads one candidate page with its exact check plan. It needs no browser.
+2. **Browser shards** download that immutable candidate. Full coverage uses four
+   isolated runners with one SwiftShader worker each. `--fully-parallel` enables
+   Playwright to partition individual tests across shards, without running
+   competing renderers on one runner. Narrow plans use at most the number of
+   selected spec files; documentation-only plans create no browser jobs.
+3. **Verify** is the aggregate gate. A missing, failed, skipped or cancelled
+   required browser job fails the gate. Only after all required jobs pass does
+   it publish the `dist` artifact used by preview/production deployment.
 
-`deploy.yml` uses exact push selection only if the Actions API confirms that
-the exact previous SHA completed this production workflow successfully. This
-prevents an earlier failed or unrun change from escaping verification in a
-later narrow push. Missing history, unavailable API results and manual
-dispatch run full. Production dispatch is restricted to `main`; branch dispatch
-uses the CI workflow without publishing. A successful affected docs-only run preserves the prior verified
-site and skips deployment; runtime changes deploy the checked artifact.
+Useful commands for investigating the same stages locally:
 
-Previews download `dist` from verification instead of rebuilding. Production
-verifies and deploys the same file in one job, avoiding another dependency
-installation and artifact transfer. Deployment remains serialized.
-Pre-push hooks still build and run all browser tests: their remote revision
-metadata has not been established reliably enough to narrow them.
+```sh
+npm run ci:prepare -- --full
+npm run ci:browser -- --shard 1/4
+```
+
+`ci:prepare` writes `.cache/verification/plan.json`. All four shards must pass
+for full coverage; running one shard is not complete proof. Each failing hosted
+shard uploads its own `playwright-report-N` artifact. `fail-fast: false` keeps
+other shards running so one failure does not hide additional diagnostics.
+Sharding trades extra runner setup for shorter wall time; it does not promise
+lower total compute minutes. Tests must keep their page/context state isolated;
+do not add order-dependent shared browser state across cases.
+
+`ci.yml` runs for PRs and manual branch dispatch. Only same-repository PRs with
+verified site changes deploy a preview. Branch dispatch verifies without
+publishing, and fork PRs do not receive deployment credentials.
+
+`deploy.yml` first requires a successful production run for the exact previous
+SHA before allowing narrow push selection. Otherwise it requests full proof.
+It then calls `verify.yml` and deploys the checked `dist` artifact. No production
+rebuild occurs after verification. Dispatch stays restricted to `main`,
+docs-only affected plans skip deployment, and production remains serialized.
+
+## Reuse of local browser proof
+
+`npm run check` and `npm run test:e2e` always run a fresh full browser suite.
+A successful unfiltered run records local proof under `.cache/verification/`.
+Pre-push still builds, then runs `npm run test:e2e:cached`: it reuses proof only
+when all browser inputs match, the last run passed, and the proof is under 24
+hours old. Otherwise it runs the complete browser suite.
+
+The SHA-256 fingerprint includes the built page, source/assets/content/vendor,
+all tests and scripts, Playwright config, tool/dependency locks, installed
+browser metadata, Node/platform/architecture, timezone and relevant execution
+environment. Ordinary Git commit metadata is excluded, so committing the exact
+bytes already checked does not trigger another expensive run. New/deleted files
+within those input trees invalidate proof. Keep this list in
+`scripts/ci/browser-proof.mjs` current if browser tests gain inputs elsewhere.
+
+Failures, interrupted runs, input changes during a run, filtered/sharded/UI
+runs, snapshot updates, skips, flaky results and malformed records cannot create
+reusable full proof. Starting another run invalidates previous proof; a prior
+run cannot restore it after a newer failure. Use the npm entry points for
+focused runs too, so they update this state:
+
+```sh
+npm run test:e2e -- test/e2e/orientation.spec.js
+```
+
+To force fresh verification, run `npm run test:e2e` without arguments. This
+local cache is an optimization, not CI attestation: hosted CI never reuses it,
+and deployment still requires every selected hosted check.
 
 ## Benchmarking
 
@@ -97,6 +142,34 @@ Compare against a fresh `npm run check` baseline on the same host. Local timings
 exclude hosted runner startup, npm installation, browser installation and
 artifact transfer; the next hosted run is the end-to-end CI confirmation.
 
+## Efficiency evidence (2026-09-07)
+
+The most recent successful hosted Verify job before sharding took **25m21s**
+([run 34038816213](https://github.com/thehumanworks/omarchy-c64/actions/runs/34038816213)).
+It used an earlier revision, so this is operational context, not a controlled
+benchmark of the new code. The local pre-push rerun took **25.2m** with 67 passes
+and one 120s orientation timeout; that test then passed in isolation unchanged.
+
+On the same local host, serial before/after samples retained the same assertions:
+
+| Representative test           |  Before |   After |
+| ----------------------------- | ------: | ------: |
+| Main menu text                | 13.451s |  5.374s |
+| HELP command                  | 15.025s |  4.472s |
+| NEWS navigation and scrolling | 38.186s | 31.568s |
+
+These are single-run measurements under variable host load, not a promised
+whole-suite speedup. A frame-wait experiment did not improve NEWS and was
+removed; the existing scroll wait remains. Camera/CRT waits remain for visuals
+and geometry. Shard discovery verified **17 + 17 + 17 + 17 = 68** distinct tests,
+with no omissions or duplicates.
+
+The final local full gate passed **183 unit tests, 10 build tests and 68 browser
+tests** (browser duration **14.3m**). After the fast CI stage rebuilt the same
+page, `/usr/bin/time -p npm run test:e2e:cached` reused that complete proof in
+**1.03s**. Hosted wall-time must still be measured on a real run; shard counts
+alone are not a hosted performance result.
+
 ## Measured results (2026-09-06)
 
 A clean `main` at `9ea9d5b59ab599e388c6f6d5b69eef2c1e1d1679` ran
@@ -114,7 +187,7 @@ All selected runs exited zero. The cursor run includes the newly added
 orientation regression, absent from the baseline's 66 tests. These are
 single-run measurements of representative change classes, not a promise for
 all changes. Shared runtime/configuration changes still run the full gate;
-pre-push remains full. Only selections with demonstrated savings were retained.
+pre-push was full in this historical measurement. Only selections with demonstrated savings were retained.
 The measurements exclude hosted setup and network overhead; removing duplicate
 branch-push verification and preview rebuilding reduces redundant CI work
 separately from these local timings.

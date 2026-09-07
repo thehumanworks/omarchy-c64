@@ -1,5 +1,5 @@
 // What the tube actually says, read back through window.__omarchy.
-// Skips on a build without the test hook (see test/e2e/README.md).
+// Requires the test hook (see test/e2e/README.md).
 import { expect, test } from '@playwright/test';
 import {
   expectOnScreen,
@@ -28,11 +28,11 @@ const LABELS = [
   'MERCH',
 ];
 
-/** Open the page, get to the menu, and bail out cleanly on a hook-less build. */
+/** Text/keyboard assertions need the menu state, not the camera's warm-up. */
 async function atMenu(page, viewport) {
   await openSite(page, viewport ? { viewport } : {});
   expect(await hasHook(page), 'window.__omarchy test hook is missing').toBe(true);
-  await skipBoot(page);
+  await skipBoot(page, { settle: false });
 }
 
 test('the main menu lists every entry and the READY prompt', async ({ page }) => {

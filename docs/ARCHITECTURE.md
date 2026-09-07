@@ -109,7 +109,9 @@ into `window.__OM_RES__`, and replaces the `APP`, `RES` and `CSS` markers in
 temporary bundle; e2e tests use `dist/index.html` from `npm run build`.
 `npm run dev` watches `src/`, `content/`, `site/`, `assets/` on port 8000.
 
-`scripts/ci/` owns conservative affected-check planning; see [CI](CI.md).
+`scripts/ci/` owns affected-check planning (`select.mjs`), stage execution
+(`checks.mjs`, `stage.mjs`) and local browser proof (`browser-check.mjs`,
+`browser-proof.mjs`). See [CI](CI.md) for the artifact/shard gate and cache inputs.
 `scripts/sync-content.mjs`, `scripts/sync/` and `content/sources.json` are an
 optional manual importer, independent of build/runtime/CI. Its stable output
 is the page tuple schema in [Content](CONTENT.md); its historical upstream

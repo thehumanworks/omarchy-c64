@@ -2,6 +2,56 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { CURSOR_SUITES, fullPlan, selectChecks } from '../../../scripts/ci/select.mjs';
 import { commandsFor, runChecks } from '../../../scripts/ci/checks.mjs';
+import { browserShards } from '../../../scripts/ci/plan.mjs';
+
+test('CI fast and browser phases partition the original gate without dropping checks', () => {
+  const plan = fullPlan();
+  assert.deepEqual(
+    [...commandsFor(plan, { phase: 'fast' }), ...commandsFor(plan, { phase: 'browser' })],
+    commandsFor(plan),
+  );
+  assert.deepEqual(commandsFor(plan, { phase: 'browser', shard: '2/4' }), [
+    [
+      'run',
+      'test:e2e',
+      '--',
+      '--fully-parallel',
+      '--shard=2/4',
+      '--forbid-only',
+      '--update-snapshots=none',
+    ],
+  ]);
+  assert.deepEqual(
+    commandsFor(selectChecks(['test/e2e/boot.spec.js']), {
+      phase: 'browser',
+      shard: '1/1',
+    }),
+    [
+      [
+        'run',
+        'test:e2e',
+        '--',
+        'test/e2e/boot.spec.js',
+        '--fully-parallel',
+        '--shard=1/1',
+        '--forbid-only',
+        '--update-snapshots=none',
+      ],
+    ],
+  );
+  for (const shard of ['0/4', '5/4', '2/1', '--grep', '1/40'])
+    assert.throws(() => commandsFor(plan, { phase: 'browser', shard }), /Shard/);
+});
+
+test('full coverage uses four shards, narrow selections use only the needed runners', () => {
+  assert.deepEqual(browserShards(fullPlan()), [1, 2, 3, 4]);
+  assert.deepEqual(browserShards(selectChecks(['test/e2e/boot.spec.js'])), [1]);
+  assert.deepEqual(
+    browserShards(selectChecks(['test/e2e/boot.spec.js', 'test/e2e/menu.spec.js'])),
+    [1, 2],
+  );
+  assert.deepEqual(browserShards(selectChecks(['README.md'])), [1]);
+});
 
 test('docs-only changes keep lint and format without unit, build or browser work', () => {
   const plan = selectChecks(['docs/DEVELOPMENT.md', 'CONTRIBUTING.md', 'AGENTS.md', 'CLAUDE.md']);

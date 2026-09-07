@@ -3,7 +3,7 @@
 // One test per page, generated from `content/menu.json` + `content/pages/*.json`
 // through `src/content/index.js`, so the assertions are derived from the data
 // the page was built from rather than copied out of it. A failure names the
-// page that broke. Skips without the test hook (see test/e2e/README.md).
+// page that broke. The test hook is required (see test/e2e/README.md).
 import { expect, test } from '@playwright/test';
 import { expectOnScreen, runCommand, state } from './helpers/page.js';
 import { asTube, atMenu } from './helpers/tube.js';
@@ -18,8 +18,6 @@ import {
 } from './helpers/content.js';
 
 const VIEWPORT = { width: 1280, height: 800 };
-
-/** Let the render loop repaint at least once: SwiftShader runs at ~10 fps. */
 const FRAMES_MS = 500;
 
 /** Open the doc that menu entry `number` points at and settle on it. */
@@ -54,7 +52,7 @@ async function sweepHits(page) {
 
 for (const entry of DOC_ENTRIES) {
   test(`${entry.label} opens on the tube, scrolls and closes`, async ({ page }) => {
-    await atMenu(page, VIEWPORT);
+    await atMenu(page, VIEWPORT, { settle: false });
     const { cols, rows } = await state(page);
 
     await openEntry(page, entry);

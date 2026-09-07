@@ -16,6 +16,8 @@ export function publishPlan(plan) {
   const outputs = {
     build: plan.build,
     browser: plan.e2e.length > 0,
+    shards: JSON.stringify(browserShards(plan)),
+    shard_total: browserShards(plan).length,
   };
   appendFileSync(
     process.env.GITHUB_OUTPUT,
@@ -23,4 +25,9 @@ export function publishPlan(plan) {
       .map(([key, value]) => `${key}=${value}\n`)
       .join(''),
   );
+}
+
+export function browserShards(plan) {
+  const total = plan.e2e.includes('all') ? 4 : Math.max(1, Math.min(4, plan.e2e.length));
+  return Array.from({ length: total }, (_, i) => i + 1);
 }

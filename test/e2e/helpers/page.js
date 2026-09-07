@@ -71,12 +71,12 @@ export function screenText(page) {
  * in app mode. Never times the animation by wall clock: under SwiftShader the
  * boot runs at roughly 10 fps and any frame-count assumption would flake.
  */
-export async function skipBoot(page) {
+export async function skipBoot(page, { settle = true } = {}) {
   await page.evaluate(() => window.__omarchy.skipBoot());
   await page.waitForFunction(() => window.__omarchy.state().mode === 'app', null, {
     timeout: 30_000,
   });
-  await page.waitForTimeout(SETTLE_MS);
+  if (settle) await page.waitForTimeout(SETTLE_MS);
 }
 
 /** Poll the tube until `text` shows up somewhere on it. */
@@ -88,6 +88,6 @@ export async function expectOnScreen(page, text, timeout = 15_000) {
 
 /** Type a command into the BASIC prompt and run it. */
 export async function runCommand(page, cmd) {
-  await page.keyboard.type(cmd, { delay: 25 });
+  await page.keyboard.type(cmd);
   await page.keyboard.press('Enter');
 }

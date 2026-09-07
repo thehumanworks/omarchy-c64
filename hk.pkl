@@ -44,6 +44,7 @@ local linters = new Mapping<String, Step> {
   ["prettier"] = (Builtins.prettier) {
     prefix = npmBin
     depends = List("eslint")
+    batch = false
   }
 
   // eslint with warnings treated as errors, matching `npm run lint`.
@@ -51,6 +52,7 @@ local linters = new Mapping<String, Step> {
   ["eslint"] = (Builtins.eslint) {
     prefix = npmBin
     glob = jsGlobs
+    batch = false
     check = new CommandSpec {
       command = new Command { argv = List("eslint", "--max-warnings", "0", "{{files}}") }
       effect = "read"
@@ -90,8 +92,8 @@ hooks {
     steps = linters
   }
 
-  // Runs on `git push`. The expensive proof: a real bundle and the headless
-  // Chromium suite against it. e2e depends on build so dist/ exists first.
+  // Build first; reuse only a complete browser pass for identical inputs.
+  // Missing, changed, failed or expired proof runs the entire suite again.
   ["pre-push"] {
     steps {
       ["build"] {
@@ -99,7 +101,7 @@ hooks {
       }
       ["e2e"] {
         depends = List("build")
-        check = "npm run test:e2e"
+        check = "npm run test:e2e:cached"
       }
     }
   }

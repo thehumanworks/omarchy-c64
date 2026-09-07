@@ -37,10 +37,10 @@ export const RAIL = '·';
  * Open the built page, get to the main menu, and fail loudly on a hookless
  * build. Returns the live array of page errors `openSite` collects.
  */
-export async function atMenu(page, viewport) {
+export async function atMenu(page, viewport, options) {
   const errors = await openSite(page, viewport ? { viewport } : {});
   expect(await hasHook(page), 'window.__omarchy test hook is missing').toBe(true);
-  await skipBoot(page);
+  await skipBoot(page, options);
   return errors;
 }
 

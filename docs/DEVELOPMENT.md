@@ -36,7 +36,7 @@ Run these from the repository root:
 | `npm run test:unit`                           | Node tests for core, content, architecture, CI planner and importer fixtures |
 | `npm run test:build`                          | Build a temporary page and assert bundle/fallback/license invariants         |
 | `npm run test`                                | Unit and build tests; does not require an existing `dist/`                   |
-| `npm run test:e2e`                            | Playwright against `dist/index.html`; build first                            |
+| `npm run test:e2e`                            | Fresh full Playwright run against `dist/index.html`; build first             |
 | `npm run test:e2e:ui`                         | Interactive Playwright runner; build first                                   |
 | `npm run test:e2e:update`                     | Replace visual goldens; only for intended appearance changes                 |
 | `npm run check`                               | lint → format → unit/build tests → bundle → full e2e                         |
@@ -52,7 +52,9 @@ freshness requirement. Do not run the importer to repair an unrelated test.
 `hk.pkl` defines pre-commit checks: Prettier, ESLint, actionlint, Pkl,
 gitleaks, and unit/build tests. Globs select relevant files. Pre-commit stashes
 unstaged work, runs fixers in order (ESLint before Prettier), and re-stages the
-result. Pre-push builds and runs the complete browser suite.
+result. Each linter receives its selected file set in one invocation, avoiding
+per-file npm/process startup. Pre-push builds and verifies browser proof: an identical recent complete pass
+can be reused, otherwise the entire browser suite runs. See [CI](CI.md#reuse-of-local-browser-proof).
 
 ```sh
 hk check           # run check steps without committing
@@ -83,6 +85,10 @@ Run `npm run check` after integrating a change. It creates the build used by
 the browser suite, so a stale `dist/` cannot supply false proof. During work,
 use a focused unit/spec command from [Debugging](DEBUGGING.md) for feedback.
 Affected checks in CI do not replace the full local handoff proof.
+
+Filtered browser runs use `npm run test:e2e -- SPEC`, which invalidates local
+full-suite proof. `npm run test:e2e:cached` is the pre-push reuse entry point;
+`npm run check` remains fresh and unconditional.
 
 For scene/shader/asset changes, open the resulting screenshots and confirm the
 monitor still looks right. For input changes, inspect the relevant desktop or

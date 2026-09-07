@@ -35,8 +35,8 @@ No repository edit by itself transfers hosting, credentials, DNS or ownership.
 ```
 merge to main
    └─ .github/workflows/deploy.yml
-        ├─ affected checks, or full gate when required
-        └─ npx wrangler pages deploy dist --project-name omarchy-website --branch main
+        ├─ verified baseline → shared fast checks + browser shards
+        └─ download verified dist → npx wrangler pages deploy dist --project-name omarchy-website --branch main
              └─ Cloudflare Pages  →  omarchy.thehuman.sh
 ```
 

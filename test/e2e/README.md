@@ -39,6 +39,19 @@ Report: `playwright-report/` (`--reporter=html`, never auto-opened).
 `orientation.spec.js` also verifies sequential orientation/viewport changes
 and projected control alignment after dimensions settle.
 
+## Verification and runtime
+
+`npm run test:e2e` always runs fresh and records a complete passing result for
+local pre-push reuse. Filtered/UI/snapshot-update runs invalidate that result.
+[CI](../../docs/CI.md) documents the fingerprint and four-runner sharding; a
+single shard never counts as full proof.
+
+Keyboard/content assertions use `{ settle: false }` when only machine state
+or buffer text matters. `skipBoot` still waits for app mode and boot itself
+repaints synchronously. Visual and geometric pointer checks retain the four-second
+camera/CRT warm-up. Typed commands still use real key events, without a synthetic
+per-character delay. Test assertions, golden tolerances and timeouts are unchanged.
+
 ## The test hook
 
 Everything on the tube is drawn into a WebGL texture, so there is no DOM to
@@ -96,7 +109,7 @@ node test/e2e/helpers/shots.mjs dist/index.html /tmp/shots
 
 For retro pointer artwork, edit the arrow/hand pixel rows in
 `src/input/cursor.js`: `X` is fill, `o` outline, `.` transparent. Keep rows the
-same width. Build, run `npx playwright test test/e2e/cursor.spec.js`, and inspect
+same width. Build, run `npm run test:e2e -- test/e2e/cursor.spec.js`, and inspect
 `test/e2e/__screenshots__/cursor.spec.js/desktop-cursor.png`. Add
 `--update-snapshots` only when the requested design change warrants new goldens.
 

@@ -8,13 +8,13 @@ changing anything. Keep the failure evidence and unrelated local work intact.
 
 | Symptom                                       | Read first                                                                  | Focused check from the repository root                                                                              |
 | --------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Page fails to boot or shows plain links       | `site/index.html`, `src/main.js`, `src/scene/renderer.js`                   | `npm run build && npx playwright test test/e2e/boot.spec.js test/e2e/fallback.spec.js`                              |
+| Page fails to boot or shows plain links       | `site/index.html`, `src/main.js`, `src/scene/renderer.js`                   | `npm run build && npm run test:e2e -- test/e2e/boot.spec.js test/e2e/fallback.spec.js`                              |
 | Wrong characters, wrap or grid                | `src/text/`, `src/screen/text-buffer.js`                                    | `node --test 'test/unit/text/*.test.js' 'test/unit/screen/*.test.js'`                                               |
 | Missing/new page, malformed copy              | `src/content/index.js`, affected `content/pages/*.json`                     | `node --test test/unit/machine/content.test.js test/unit/machine/doc-lines.test.js`                                 |
 | Command or link opens wrong destination       | `src/machine/commands.js`, `navigate.js`, `src/runtime/links.js`            | `node --test test/unit/machine/commands.test.js test/unit/machine/navigate.test.js`                                 |
-| Click/scroll disagrees with the tube          | `src/input/pointer.js`, `pick.js`, `scroll.js`, `src/machine/doc.js`        | `npm run build && npx playwright test test/e2e/pointer.spec.js test/e2e/touch.spec.js`                              |
-| Rocker repeats after release or targets drift | `src/input/monitor-controls.js`, `src/scene/control-bounds.js`, `layout.js` | `npm run build && npx playwright test test/e2e/monitor-controls.spec.js test/e2e/orientation.spec.js`               |
-| CRT, case, resize or shader regression        | `src/scene/layout.js`, affected scene/shader file, `src/runtime/loop.js`    | `npm run build && npx playwright test test/e2e/visual.spec.js test/e2e/layout.spec.js test/e2e/orientation.spec.js` |
+| Click/scroll disagrees with the tube          | `src/input/pointer.js`, `pick.js`, `scroll.js`, `src/machine/doc.js`        | `npm run build && npm run test:e2e -- test/e2e/pointer.spec.js test/e2e/touch.spec.js`                              |
+| Rocker repeats after release or targets drift | `src/input/monitor-controls.js`, `src/scene/control-bounds.js`, `layout.js` | `npm run build && npm run test:e2e -- test/e2e/monitor-controls.spec.js test/e2e/orientation.spec.js`               |
+| CRT, case, resize or shader regression        | `src/scene/layout.js`, affected scene/shader file, `src/runtime/loop.js`    | `npm run build && npm run test:e2e -- test/e2e/visual.spec.js test/e2e/layout.spec.js test/e2e/orientation.spec.js` |
 | Wrong checks selected                         | `scripts/ci/select.mjs`, `plan.mjs`, `checks.mjs`                           | `node --test 'test/unit/ci/*.test.js'` then `npm run ci:plan -- --base origin/main`                                 |
 | Optional importer drops text or fails         | `content/sources.json`, affected adapter, `scripts/sync/run.mjs`            | `node --test 'test/unit/sync/*.test.js'`; see [Content sources](CONTENT-SOURCES.md) before a live import            |
 
@@ -61,7 +61,7 @@ focused failure with actions, DOM snapshots and console messages:
 
 ```sh
 npm run build
-npx playwright test test/e2e/navigation.spec.js --trace on
+npm run test:e2e -- test/e2e/navigation.spec.js --trace on
 npx playwright show-trace test-results/PATH-FROM-THE-RUN/trace.zip
 ```
 
